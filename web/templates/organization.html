@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ organization.name }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">{{ organization.name }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>{{ organization.name }}</h2>
+            <p class="text-muted mb-0">{{ organization.industry or 'Industry not specified' }} | {{ organization.stage or 'Stage not specified' }}</p>
+        </div>
+        <a href="/chat?org={{ organization.id }}" class="btn btn-primary"><i class="bi bi-chat-dots me-1"></i>Ask AI CEO</a>
+    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted mb-1">Health Score</div>
+                <div class="stat-value">{{ metrics.overall_health|round(0) if metrics and metrics.overall_health else 'N/A' }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted mb-1">Strategic Goals</div>
+                <div class="stat-value">{{ goals|length }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted mb-1">Revenue</div>
+                <div class="stat-value">${{ "{:,.0f}".format(metrics.revenue) if metrics and metrics.revenue else 'N/A' }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted mb-1">Team Size</div>
+                <div class="stat-value">{{ metrics.employee_count if metrics and metrics.employee_count else 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-bullseye me-2"></i>Strategic Goals</h5>
+            <button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i></button>
+        </div>
+        <div class="card-body">
+            {% if goals %}
+            <table class="table">
+                <thead><tr><th>Goal</th><th>Category</th><th>Owner</th><th>Progress</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for g in goals %}
+                    <tr>
+                        <td>{{ g.title }}</td>
+                        <td>{{ g.category or '-' }}</td>
+                        <td>{{ g.owner or '-' }}</td>
+                        <td>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-warning" style="width: {{ g.progress or 0 }}%"></div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-{{ 'success' if g.status == 'On Track' else 'warning' if g.status == 'At Risk' else 'danger' if g.status == 'Behind' else 'secondary' }}">{{ g.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted text-center py-3">No strategic goals defined yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

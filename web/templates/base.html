@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Executive Intelligence{% endblock %} - Fractional CEO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            --secondary-gradient: linear-gradient(135deg, #ff8c00 0%, #b8860b 100%);
+            --accent-color: #ffd700;
+            --dark-bg: #1a1a1a;
+            --card-bg: #252525;
+        }
+        body { background: var(--dark-bg); color: #e8e8e8; min-height: 100vh; }
+        .navbar { background: var(--primary-gradient) !important; box-shadow: 0 2px 20px rgba(255, 215, 0, 0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #000 !important; }
+        .nav-link { color: rgba(0,0,0,0.8) !important; }
+        .card { background: var(--card-bg); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 12px; }
+        .card-header { background: var(--secondary-gradient); border-bottom: none; border-radius: 12px 12px 0 0 !important; color: #fff; }
+        .btn-primary { background: var(--primary-gradient); border: none; color: #000; font-weight: 600; }
+        .btn-primary:hover { background: var(--secondary-gradient); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); color: #fff; }
+        .stat-card { background: var(--card-bg); border-radius: 12px; padding: 1.5rem; border-left: 4px solid var(--accent-color); }
+        .stat-value { font-size: 2rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .table { color: #e8e8e8; }
+        .table thead th { border-bottom: 2px solid var(--accent-color); }
+        .hero-section { background: var(--primary-gradient); padding: 4rem 0; margin-bottom: 2rem; color: #000; }
+        .feature-icon { width: 60px; height: 60px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+        .footer { background: var(--card-bg); padding: 2rem 0; margin-top: 3rem; border-top: 1px solid rgba(255, 215, 0, 0.2); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-award me-2"></i>Executive Intelligence</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/chat"><i class="bi bi-chat-dots me-1"></i>AI CEO</a></li>
+                </ul>
+                <span class="navbar-text"><span class="badge bg-dark">Fractional CEO</span></span>
+            </div>
+        </div>
+    </nav>
+    <main>{% block content %}{% endblock %}</main>
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-1">Executive Intelligence - Your Fractional CEO</p>
+            <small class="text-muted">Part of the Fractional C-Suite by Patriot Tech Systems</small>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
