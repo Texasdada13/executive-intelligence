@@ -15,6 +15,7 @@ from src.patterns.benchmark_engine import create_executive_benchmarks
 from src.database.models import UploadedFile
 from src.demo.data_generator import create_executive_demo_generator
 from src.reports.report_generator import create_report_generator
+from src.alerts.alert_engine import create_alert_engine
 
 
 def create_app():
@@ -36,6 +37,7 @@ def create_app():
     benchmark_engine = create_executive_benchmarks()
     file_analyzer = create_file_analyzer()
     report_generator = create_report_generator()
+    alert_engine = create_alert_engine()
 
     @app.route('/')
     def index():
@@ -493,6 +495,53 @@ def create_app():
 
         html_content = report_generator.generate_html_report(data, org.name)
         return Response(html_content, mimetype='text/html')
+
+    # ==================== ALERTS API ====================
+
+    @app.route('/api/alerts/<org_id>')
+    def api_get_alerts(org_id):
+        """Get executive alerts for an organization."""
+        org = OrganizationRepository.get_by_id(org_id)
+        if not org:
+            return jsonify({'error': 'Organization not found'}), 404
+
+        goals = StrategicGoalRepository.get_by_organization(org_id)
+
+        goals_on_track = sum(1 for g in goals if g.status in ['on_track', 'completed'])
+        goals_at_risk = sum(1 for g in goals if g.status == 'at_risk')
+        goals_behind = sum(1 for g in goals if g.status == 'behind')
+
+        csuite_health = {'ceo': 85, 'cfo': 78, 'cmo': 72, 'cto': 81, 'coo': 76, 'chro': 69, 'ciso': 74, 'clo': 82}
+        avg_score = sum(csuite_health.values()) / len(csuite_health)
+        grade = 'A' if avg_score >= 90 else 'B' if avg_score >= 80 else 'C' if avg_score >= 70 else 'D' if avg_score >= 60 else 'F'
+
+        data = {
+            'health': {'grade': grade, 'score': round(avg_score, 1), 'csuite_scores': csuite_health},
+            'goals': {
+                'total': len(goals),
+                'on_track': goals_on_track,
+                'at_risk': goals_at_risk,
+                'behind': goals_behind,
+                'items': [{
+                    'title': g.title,
+                    'category': g.category,
+                    'progress': round((g.current / g.target) * 100, 1) if g.target and g.target > 0 else 0,
+                    'status': g.status,
+                    'priority': g.priority
+                } for g in goals]
+            },
+            'financial': {'revenue_growth': 12.5, 'profit_margin': 18.2, 'cash_runway': 24, 'burn_rate': 125000},
+            'customer': {'nps_score': 42, 'churn_rate': 3.2, 'csat_score': 4.1, 'ltv_cac_ratio': 3.5},
+            'people': {'engagement_score': 78, 'attrition_rate': 8.5, 'hiring_velocity': 12, 'diversity_index': 0.72}
+        }
+
+        alerts = alert_engine.check_metrics(data)
+        summary = alert_engine.get_alert_summary(alerts)
+
+        return jsonify({
+            'alerts': [a.to_dict() for a in alerts],
+            'summary': summary
+        })
 
     # ==================== DEMO DATA API ====================
 
