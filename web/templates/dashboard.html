@@ -1,43 +1,199 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--accent-color);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .metric-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2); }
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .metric-label { color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+    .chart-container { background: var(--card-bg); border-radius: 12px; padding: 1.5rem; height: 350px; }
+    .org-selector { background: var(--card-bg); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; }
+    .quick-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(26, 26, 26, 0.9); display: flex; align-items: center; justify-content: center; border-radius: 12px; z-index: 10; }
+    .health-grade { font-size: 4rem; font-weight: 700; }
+    .health-grade.A { color: #4caf50; }
+    .health-grade.B { color: #8bc34a; }
+    .health-grade.C { color: #ff9800; }
+    .health-grade.D { color: #ff5722; }
+    .health-grade.F { color: #f44336; }
+    .csuite-card { background: var(--card-bg); border-radius: 8px; padding: 1rem; text-align: center; }
+    .csuite-score { font-size: 1.5rem; font-weight: 700; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-speedometer2 me-2"></i>Executive Dashboard</h2>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrgModal">
-            <i class="bi bi-plus-lg me-1"></i>Add Organization
-        </button>
+        <h2><i class="bi bi-award me-2"></i>Executive Dashboard</h2>
+        <div class="quick-actions">
+            <button class="btn btn-outline-light btn-sm" onclick="loadDemoData()"><i class="bi bi-magic me-1"></i>Load Demo Data</button>
+            <button class="btn btn-outline-light btn-sm" onclick="refreshDashboard()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addOrgModal"><i class="bi bi-plus-lg me-1"></i>Add Organization</button>
+        </div>
     </div>
-    {% if organizations %}
-    <div class="row g-4">
-        {% for org in organizations %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
-                <div class="card-header"><h5 class="mb-0">{{ org.name }}</h5></div>
-                <div class="card-body">
-                    <p class="text-muted mb-2"><i class="bi bi-building me-1"></i>{{ org.industry or 'Not specified' }}</p>
-                    <p class="text-muted mb-2"><i class="bi bi-rocket me-1"></i>{{ org.stage or 'Not specified' }}</p>
-                    <a href="/organization/{{ org.id }}" class="btn btn-primary w-100 mt-3">
-                        <i class="bi bi-arrow-right me-1"></i>View Details
-                    </a>
+
+    <div class="org-selector">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <label class="form-label mb-0 text-muted">Select Organization</label>
+                <select id="orgSelector" class="form-select bg-dark text-light border-secondary mt-1">
+                    <option value="">-- Select Organization --</option>
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}">{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label mb-0 text-muted">Time Period</label>
+                <select id="periodSelector" class="form-select bg-dark text-light border-secondary mt-1">
+                    <option value="quarter" selected>This Quarter</option>
+                    <option value="year">This Year</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="text-muted small">Business Health</div>
+                <div class="health-grade A" id="healthGrade">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Revenue Growth</div>
+                <div class="metric-value" id="metricRevenue">0%</div>
+                <div class="text-muted small">Year over Year</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Goals On Track</div>
+                <div class="metric-value" id="metricGoals">0/0</div>
+                <div class="text-muted small">Strategic goals</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">NPS Score</div>
+                <div class="metric-value" id="metricNPS">0</div>
+                <div class="text-muted small">Customer satisfaction</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Team Engagement</div>
+                <div class="metric-value" id="metricEngagement">0%</div>
+                <div class="text-muted small">Employee score</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-container position-relative">
+                <h6 class="mb-3"><i class="bi bi-bullseye me-2"></i>Strategic Goals Progress</h6>
+                <canvas id="goalsChart"></canvas>
+                <div class="loading-overlay" id="goalsLoading" style="display: none;">
+                    <div class="spinner-border text-warning" role="status"></div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-building display-1 text-muted mb-3"></i>
-            <h4>No Organizations Yet</h4>
-            <p class="text-muted mb-4">Add your first organization to start executive oversight</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrgModal">
-                <i class="bi bi-plus-lg me-1"></i>Add Organization
-            </button>
+        <div class="col-lg-4">
+            <div class="chart-container position-relative">
+                <h6 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Goal Status</h6>
+                <canvas id="statusChart"></canvas>
+            </div>
         </div>
     </div>
-    {% endif %}
+
+    <!-- C-Suite Health Row -->
+    <div class="card mb-4">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-people me-2"></i>C-Suite Health</h6></div>
+        <div class="card-body">
+            <div class="row g-3" id="csuiteGrid">
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CEO</div><div class="csuite-score" id="csuiteCEO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CFO</div><div class="csuite-score" id="csuiteCFO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CTO</div><div class="csuite-score" id="csuiteCTO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CMO</div><div class="csuite-score" id="csuiteCMO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">COO</div><div class="csuite-score" id="csuiteCOO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CHRO</div><div class="csuite-score" id="csuiteCHRO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CSO</div><div class="csuite-score" id="csuiteCSO">--</div></div></div>
+                <div class="col-md-3 col-6"><div class="csuite-card"><div class="text-muted small">CPO</div><div class="csuite-score" id="csuiteCPO">--</div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="chart-container position-relative">
+                <h6 class="mb-3"><i class="bi bi-graph-up me-2"></i>Financial Performance</h6>
+                <canvas id="financialChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-container position-relative">
+                <h6 class="mb-3"><i class="bi bi-person-check me-2"></i>Customer & People Metrics</h6>
+                <canvas id="metricsRadar"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organizations List -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-building me-2"></i>Organizations</h5>
+            <span class="badge bg-dark">{{ organizations|length }} total</span>
+        </div>
+        <div class="card-body">
+            {% if organizations %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead><tr><th>Organization</th><th>Industry</th><th>Stage</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {% for org in organizations %}
+                        <tr>
+                            <td><strong>{{ org.name }}</strong></td>
+                            <td>{{ org.industry or '--' }}</td>
+                            <td>{{ org.stage or '--' }}</td>
+                            <td>
+                                <a href="/organization/{{ org.id }}" class="btn btn-sm btn-outline-light"><i class="bi bi-eye"></i></a>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteOrg('{{ org.id }}')"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-award display-1 text-muted mb-3"></i>
+                <h4>No Organizations Yet</h4>
+                <p class="text-muted mb-4">Add an organization or load demo data to get started</p>
+                <button class="btn btn-primary me-2" onclick="loadDemoData()"><i class="bi bi-magic me-1"></i>Load Demo Data</button>
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#addOrgModal"><i class="bi bi-plus-lg me-1"></i>Add Organization</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
 <div class="modal fade" id="addOrgModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content bg-dark">
@@ -83,18 +239,209 @@
     </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
+let goalsChart, statusChart, financialChart, metricsRadar;
+
+const chartColors = {
+    gold: 'rgba(255, 215, 0, 0.8)',
+    orange: 'rgba(255, 140, 0, 0.8)',
+    green: 'rgba(76, 175, 80, 0.8)',
+    blue: 'rgba(33, 150, 243, 0.8)',
+    red: 'rgba(244, 67, 54, 0.8)',
+    purple: 'rgba(156, 39, 176, 0.8)',
+    cyan: 'rgba(0, 188, 212, 0.8)'
+};
+
+function initCharts() {
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#e8e8e8' } } },
+        scales: {
+            x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+            y: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+        }
+    };
+
+    goalsChart = new Chart(document.getElementById('goalsChart'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'Target', data: [], backgroundColor: chartColors.blue },
+                { label: 'Current', data: [], backgroundColor: chartColors.gold }
+            ]
+        },
+        options: chartOptions
+    });
+
+    statusChart = new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['On Track', 'Behind', 'At Risk', 'Completed'],
+            datasets: [{ data: [0, 0, 0, 0], backgroundColor: [chartColors.green, chartColors.orange, chartColors.red, chartColors.blue], borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e8e8e8' } } }, cutout: '60%' }
+    });
+
+    financialChart = new Chart(document.getElementById('financialChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Revenue', 'Gross Margin', 'Net Margin', 'LTV/CAC'],
+            datasets: [{ label: 'Performance', data: [0, 0, 0, 0], backgroundColor: [chartColors.gold, chartColors.green, chartColors.blue, chartColors.purple] }]
+        },
+        options: { ...chartOptions, plugins: { legend: { display: false } } }
+    });
+
+    metricsRadar = new Chart(document.getElementById('metricsRadar'), {
+        type: 'radar',
+        data: {
+            labels: ['NPS', 'Retention', 'Engagement', 'CSAT', 'Growth'],
+            datasets: [{
+                label: 'Score',
+                data: [0, 0, 0, 0, 0],
+                borderColor: chartColors.gold,
+                backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                pointBackgroundColor: chartColors.gold
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { r: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: '#e8e8e8' } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function updateMetrics(data) {
+    const metrics = data.metrics_summary || {};
+    const financial = data.financial_metrics || {};
+    const customers = data.customer_metrics || {};
+    const people = data.people_metrics || {};
+    const goals = data.strategic_goals || [];
+
+    document.getElementById('metricRevenue').textContent = (financial.revenue_growth || 0).toFixed(1) + '%';
+    const onTrack = goals.filter(g => g.status === 'on_track' || g.status === 'completed').length;
+    document.getElementById('metricGoals').textContent = `${onTrack}/${goals.length}`;
+    document.getElementById('metricNPS').textContent = customers.nps || 0;
+    document.getElementById('metricEngagement').textContent = (people.engagement || 0) + '%';
+
+    const grade = metrics.health_grade || '--';
+    const gradeEl = document.getElementById('healthGrade');
+    gradeEl.textContent = grade;
+    gradeEl.className = 'health-grade ' + grade;
+}
+
+function updateCsuite(data) {
+    const csuite = data.csuite_health || {};
+    const functions = ['ceo', 'cfo', 'cto', 'cmo', 'coo', 'chro', 'cso', 'cpo'];
+    functions.forEach(f => {
+        const el = document.getElementById('csuite' + f.toUpperCase());
+        const score = csuite[f]?.health_score;
+        if (el && score !== undefined) {
+            el.textContent = score;
+            el.style.color = score >= 70 ? '#4caf50' : score >= 50 ? '#ff9800' : '#f44336';
+        }
+    });
+}
+
+function updateCharts(data) {
+    const goals = data.strategic_goals || [];
+    const financial = data.financial_metrics || {};
+    const customers = data.customer_metrics || {};
+    const people = data.people_metrics || {};
+
+    // Goals chart
+    if (goals.length > 0) {
+        goalsChart.data.labels = goals.slice(0, 6).map(g => g.category?.substring(0, 12) || 'Goal');
+        goalsChart.data.datasets[0].data = goals.slice(0, 6).map(g => g.target || 100);
+        goalsChart.data.datasets[1].data = goals.slice(0, 6).map(g => g.current || 0);
+        goalsChart.update();
+
+        const statusCounts = { on_track: 0, behind: 0, at_risk: 0, completed: 0 };
+        goals.forEach(g => { if (statusCounts[g.status] !== undefined) statusCounts[g.status]++; });
+        statusChart.data.datasets[0].data = [statusCounts.on_track, statusCounts.behind, statusCounts.at_risk, statusCounts.completed];
+        statusChart.update();
+    }
+
+    // Financial chart
+    financialChart.data.datasets[0].data = [
+        financial.revenue_growth || 0,
+        financial.gross_margin || 0,
+        financial.net_margin || 0,
+        (financial.ltv_cac_ratio || 0) * 10
+    ];
+    financialChart.update();
+
+    // Radar chart
+    metricsRadar.data.datasets[0].data = [
+        customers.nps || 0,
+        customers.retention_rate || 0,
+        people.engagement || 0,
+        (customers.csat || 0) * 20,
+        customers.growth || 0
+    ];
+    metricsRadar.update();
+}
+
+async function loadDemoData() {
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Loading...';
+    try {
+        const response = await fetch('/api/demo/load', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ organization_name: 'Demo Enterprise Corp' }) });
+        if (response.ok) {
+            const result = await response.json();
+            alert(`Demo data loaded! Created ${result.goals_created} strategic goals.`);
+            window.location.reload();
+        }
+    } catch (error) { alert('Error: ' + error.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="bi bi-magic me-1"></i>Load Demo Data'; }
+}
+
+async function loadOrgData(orgId) {
+    if (!orgId) return;
+    document.getElementById('goalsLoading').style.display = 'flex';
+    try {
+        const response = await fetch('/api/demo/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ seed: orgId.charCodeAt(0) }) });
+        if (response.ok) {
+            const data = await response.json();
+            updateMetrics(data);
+            updateCsuite(data);
+            updateCharts(data);
+        }
+    } catch (error) { console.error('Error:', error); }
+    finally { document.getElementById('goalsLoading').style.display = 'none'; }
+}
+
+function refreshDashboard() {
+    const orgId = document.getElementById('orgSelector').value;
+    if (orgId) loadOrgData(orgId); else window.location.reload();
+}
+
+async function deleteOrg(orgId) {
+    if (!confirm('Delete this organization?')) return;
+    await fetch(`/api/organizations/${orgId}`, { method: 'DELETE' });
+    window.location.reload();
+}
+
 document.getElementById('addOrgForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    const response = await fetch('/api/organizations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
+    const response = await fetch('/api/organizations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     if (response.ok) window.location.reload();
+});
+
+document.getElementById('orgSelector').addEventListener('change', (e) => loadOrgData(e.target.value));
+
+document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    const selector = document.getElementById('orgSelector');
+    if (selector.options.length > 1) { selector.selectedIndex = 1; loadOrgData(selector.value); }
 });
 </script>
 {% endblock %}

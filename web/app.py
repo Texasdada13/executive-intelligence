@@ -300,6 +300,110 @@ def create_app():
 
         return jsonify(uploaded_file.to_dict())
 
+    # ==================== DASHBOARD API ====================
+
+    @app.route('/api/dashboard/<org_id>')
+    def api_dashboard_data(org_id):
+        """Get dashboard data for an organization."""
+        org = OrganizationRepository.get_by_id(org_id)
+        if not org:
+            return jsonify({'error': 'Organization not found'}), 404
+
+        goals = StrategicGoalRepository.get_by_organization(org_id)
+        metrics = ExecutiveMetricsRepository.get_latest(org_id)
+
+        # Calculate goal metrics
+        goals_on_track = sum(1 for g in goals if g.status in ['on_track', 'completed'])
+        goals_at_risk = sum(1 for g in goals if g.status == 'at_risk')
+        goals_behind = sum(1 for g in goals if g.status == 'behind')
+        total_goals = len(goals)
+
+        # Goal data for charts
+        goal_data = [{
+            'title': g.title,
+            'category': g.category,
+            'progress': round((g.current / g.target) * 100, 1) if g.target and g.target > 0 else 0,
+            'status': g.status,
+            'priority': g.priority
+        } for g in goals]
+
+        # Financial metrics (from metrics or defaults)
+        financial = {
+            'revenue_growth': 12.5,
+            'profit_margin': 18.2,
+            'cash_runway': 24,
+            'burn_rate': 125000
+        }
+
+        # Customer metrics
+        customer = {
+            'nps_score': 42,
+            'churn_rate': 3.2,
+            'csat_score': 4.1,
+            'ltv_cac_ratio': 3.5
+        }
+
+        # People metrics
+        people = {
+            'engagement_score': 78,
+            'attrition_rate': 8.5,
+            'hiring_velocity': 12,
+            'diversity_index': 0.72
+        }
+
+        # C-Suite health scores
+        csuite_health = {
+            'ceo': 85,
+            'cfo': 78,
+            'cmo': 72,
+            'cto': 81,
+            'coo': 76,
+            'chro': 69,
+            'ciso': 74,
+            'clo': 82
+        }
+
+        # Calculate overall business health grade
+        avg_score = sum(csuite_health.values()) / len(csuite_health)
+        if avg_score >= 90:
+            grade = 'A'
+        elif avg_score >= 80:
+            grade = 'B'
+        elif avg_score >= 70:
+            grade = 'C'
+        elif avg_score >= 60:
+            grade = 'D'
+        else:
+            grade = 'F'
+
+        # Trend data
+        import random
+        trend_data = {
+            'labels': ['Q1', 'Q2', 'Q3', 'Q4'],
+            'revenue': [1200000, 1350000, 1280000, 1450000],
+            'profit': [180000, 220000, 195000, 260000]
+        }
+
+        return jsonify({
+            'organization': org.to_dict(),
+            'health': {
+                'grade': grade,
+                'score': round(avg_score, 1),
+                'csuite_scores': csuite_health
+            },
+            'goals': {
+                'total': total_goals,
+                'on_track': goals_on_track,
+                'at_risk': goals_at_risk,
+                'behind': goals_behind,
+                'items': goal_data
+            },
+            'financial': financial,
+            'customer': customer,
+            'people': people,
+            'trend_data': trend_data
+        })
+
     # ==================== DEMO DATA API ====================
 
     @app.route('/api/demo/generate', methods=['POST'])
