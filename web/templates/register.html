@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Register - Executive Intelligence{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 450px; margin-top: 60px;">
+    <div class="card shadow-sm">
+        <div class="card-header text-center bg-dark text-white">
+            <h4 class="mb-0"><i class="bi bi-person-plus me-2"></i>Create Account</h4>
+            <small>C-Suite Unified Authentication</small>
+        </div>
+        <div class="card-body p-4">
+            <div id="alertContainer"></div>
+
+            <form id="registerForm">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" name="first_name" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" name="last_name" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                    <div class="form-text">At least 8 characters</div>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-dark btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    Already have an account?
+                    <a href="/login" class="text-dark">Sign in here</a>
+                </small>
+            </div>
+        </div>
+        <div class="card-footer text-center bg-light">
+            <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                Your account works across all C-Suite products
+            </small>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <p class="text-muted mb-2">Get access to:</p>
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+            <span class="badge bg-secondary" title="Cash Flow Intelligence">CFO</span>
+            <span class="badge bg-secondary" title="App Rationalization Pro">CTO</span>
+            <span class="badge bg-warning text-dark" title="Executive Intelligence">CEO</span>
+            <span class="badge bg-secondary" title="Marketing Intelligence">CMO</span>
+            <span class="badge bg-secondary" title="Security Intelligence">CISO</span>
+            <span class="badge bg-secondary" title="Operations Intelligence">COO</span>
+            <span class="badge bg-secondary" title="Talent Intelligence">CHRO</span>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const alertContainer = document.getElementById('alertContainer');
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>Passwords do not match
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email,
+                password
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>Account created! Redirecting...
+                </div>
+            `;
+            setTimeout(() => {
+                window.location.href = '/executive-dashboard';
+            }, 1500);
+        } else {
+            alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>${data.error || 'Registration failed'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    } catch (error) {
+        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>Network error. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+});
+</script>
+{% endblock %}

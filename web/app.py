@@ -5,6 +5,19 @@ from flask import Flask, render_template, request, jsonify, Response, stream_wit
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Add shared-auth package to path
+# The shared-auth folder is in the parent directory of executive-intelligence
+_this_file = os.path.abspath(__file__)  # web/app.py
+_web_dir = os.path.dirname(_this_file)  # web
+_project_dir = os.path.dirname(_web_dir)  # executive-intelligence
+_dev_dir = os.path.dirname(_project_dir)  # dev
+shared_auth_path = os.path.join(_dev_dir, 'shared-auth')
+if os.path.exists(shared_auth_path):
+    sys.path.insert(0, shared_auth_path)
+    print(f"Added shared-auth to path: {shared_auth_path}")
+else:
+    print(f"Warning: shared-auth not found at {shared_auth_path}")
+
 from config.settings import get_config
 from src.database.models import db
 from src.database.repository import OrganizationRepository, StrategicGoalRepository, ExecutiveMetricsRepository, BoardReportRepository, ChatRepository
@@ -22,6 +35,21 @@ from src.integrations.cross_product_aggregator import (
     create_demo_cross_product_data
 )
 
+# Import shared auth (optional - graceful fallback if not available)
+try:
+    from csuite_auth import (
+        init_auth,
+        create_auth_blueprint,
+        login_required,
+        optional_auth,
+        current_user,
+        product_required
+    )
+    CSUITE_AUTH_AVAILABLE = True
+except ImportError:
+    CSUITE_AUTH_AVAILABLE = False
+    print("Note: csuite_auth package not available. Running without cross-product authentication.")
+
 
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='../static')
@@ -31,6 +59,25 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+    # Initialize shared authentication (if available)
+    if CSUITE_AUTH_AVAILABLE:
+        auth = init_auth(
+            app,
+            product_code='ceo',
+            excluded_routes=['/static', '/health', '/favicon.ico', '/api/cross-product/demo'],
+            login_url='/auth/login'
+        )
+
+        # Register auth blueprint with endpoints
+        auth_bp = create_auth_blueprint(
+            enable_registration=True,
+            enable_demo_mode=True,
+            cookie_secure=not app.debug,  # Secure cookies in production
+            url_prefix='/auth'
+        )
+        app.register_blueprint(auth_bp)
+        print("C-Suite unified authentication enabled")
 
     try:
         chat_engine = ChatEngine()
@@ -664,6 +711,18 @@ def create_app():
     def api_cross_product_demo():
         """Get demo data for the executive dashboard."""
         return jsonify(create_demo_cross_product_data())
+
+    # ==================== AUTHENTICATION PAGES ====================
+
+    @app.route('/login')
+    def login_page():
+        """Login page for authentication."""
+        return render_template('login.html')
+
+    @app.route('/register')
+    def register_page():
+        """Registration page for new users."""
+        return render_template('register.html')
 
     @app.route('/health')
     def health():

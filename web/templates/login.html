@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Login - Executive Intelligence{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 450px; margin-top: 80px;">
+    <div class="card shadow-sm">
+        <div class="card-header text-center bg-dark text-white">
+            <h4 class="mb-0"><i class="bi bi-award me-2"></i>Executive Intelligence</h4>
+            <small>C-Suite Unified Authentication</small>
+        </div>
+        <div class="card-body p-4">
+            <div id="alertContainer"></div>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-dark btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    </button>
+                </div>
+            </form>
+
+            <hr class="my-4">
+
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-outline-warning" id="demoLoginBtn">
+                    <i class="bi bi-lightning me-2"></i>Demo Login (No Password Required)
+                </button>
+            </div>
+
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    Don't have an account?
+                    <a href="/register" class="text-dark">Register here</a>
+                </small>
+            </div>
+        </div>
+        <div class="card-footer text-center bg-light">
+            <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                One login works across all C-Suite products
+            </small>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+            <span class="badge bg-secondary">CFO</span>
+            <span class="badge bg-secondary">CTO</span>
+            <span class="badge bg-warning text-dark">CEO</span>
+            <span class="badge bg-secondary">CMO</span>
+            <span class="badge bg-secondary">CISO</span>
+            <span class="badge bg-secondary">COO</span>
+            <span class="badge bg-secondary">CHRO</span>
+        </div>
+        <small class="text-muted d-block mt-2">Access all products with one account</small>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const alertContainer = document.getElementById('alertContainer');
+
+    try {
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Get redirect URL from query params or default to dashboard
+            const urlParams = new URLSearchParams(window.location.search);
+            const next = urlParams.get('next') || '/dashboard';
+            window.location.href = next;
+        } else {
+            alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>${data.error || 'Login failed'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    } catch (error) {
+        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>Network error. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+});
+
+document.getElementById('demoLoginBtn').addEventListener('click', async function() {
+    const alertContainer = document.getElementById('alertContainer');
+
+    try {
+        const response = await fetch('/auth/demo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'admin' })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>Welcome, ${data.user.full_name}! Redirecting...
+                </div>
+            `;
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const next = urlParams.get('next') || '/executive-dashboard';
+                window.location.href = next;
+            }, 1000);
+        } else {
+            alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>${data.error || 'Demo login failed'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    } catch (error) {
+        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>Network error. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+});
+</script>
+{% endblock %}
