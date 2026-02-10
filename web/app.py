@@ -712,6 +712,76 @@ def create_app():
         """Get demo data for the executive dashboard."""
         return jsonify(create_demo_cross_product_data())
 
+    # ==================== AGGREGATED REPORTING ====================
+
+    @app.route('/api/reports/generate', methods=['POST'])
+    def api_generate_report():
+        """
+        Generate an aggregated report from cross-product data.
+
+        Request body:
+            - report_type: executive_summary, board_presentation, quarterly_review
+            - reporting_period: Optional period string (e.g., "Q1 2026")
+            - organization: Optional organization name
+            - format: html, json, markdown (default: json)
+        """
+        from reports.aggregated_report_generator import (
+            AggregatedReportGenerator, ReportType, create_aggregated_report_generator
+        )
+
+        data = request.get_json() or {}
+        report_type_str = data.get('report_type', 'executive_summary')
+        reporting_period = data.get('reporting_period')
+        organization = data.get('organization', 'Demo Organization')
+        output_format = data.get('format', 'json')
+
+        try:
+            report_type = ReportType(report_type_str)
+        except ValueError:
+            report_type = ReportType.EXECUTIVE_SUMMARY
+
+        # Get cross-product data
+        use_demo = data.get('demo', True)
+        if use_demo:
+            cross_product_data = create_demo_cross_product_data()
+        else:
+            try:
+                cross_product_data = get_executive_summary_sync()
+            except Exception:
+                cross_product_data = create_demo_cross_product_data()
+
+        # Generate report
+        generator = create_aggregated_report_generator(organization)
+        report = generator.generate_report(
+            report_type=report_type,
+            cross_product_data=cross_product_data,
+            reporting_period=reporting_period
+        )
+
+        # Return in requested format
+        if output_format == 'html':
+            return Response(generator.render_html(report), mimetype='text/html')
+        elif output_format == 'markdown':
+            return Response(generator.render_markdown(report), mimetype='text/markdown')
+        else:
+            return jsonify(report.to_dict())
+
+    @app.route('/api/reports/types')
+    def api_report_types():
+        """Get available report types."""
+        from reports.aggregated_report_generator import ReportType
+        return jsonify({
+            'report_types': [
+                {'value': rt.value, 'label': rt.value.replace('_', ' ').title()}
+                for rt in ReportType
+            ]
+        })
+
+    @app.route('/reports')
+    def reports_page():
+        """Aggregated reports page."""
+        return render_template('reports.html')
+
     # ==================== AUTHENTICATION PAGES ====================
 
     @app.route('/login')
