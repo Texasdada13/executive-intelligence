@@ -58,7 +58,7 @@ class ProductAdapter(ABC):
 class MarketingAdapter(ProductAdapter):
     """Adapter for Marketing Intelligence product."""
 
-    def __init__(self, base_url: str = "http://localhost:5001", api_key: str = None):
+    def __init__(self, base_url: str = "http://localhost:5104", api_key: str = None):
         super().__init__(AdapterConfig(base_url=base_url, api_key=api_key))
 
     def get_organization_data(self, org_id: str) -> Dict[str, Any]:
@@ -135,7 +135,7 @@ class MarketingAdapter(ProductAdapter):
 class SecurityAdapter(ProductAdapter):
     """Adapter for Security Intelligence product."""
 
-    def __init__(self, base_url: str = "http://localhost:5002", api_key: str = None):
+    def __init__(self, base_url: str = "http://localhost:5105", api_key: str = None):
         super().__init__(AdapterConfig(base_url=base_url, api_key=api_key))
 
     def get_organization_data(self, org_id: str) -> Dict[str, Any]:
@@ -267,7 +267,7 @@ def create_marketing_adapter(
     """Factory function to create a marketing adapter."""
     if use_mock:
         return MockMarketingAdapter()
-    return MarketingAdapter(base_url or "http://localhost:5001")
+    return MarketingAdapter(base_url or "http://localhost:5104")
 
 
 def create_security_adapter(
@@ -277,4 +277,4 @@ def create_security_adapter(
     """Factory function to create a security adapter."""
     if use_mock:
         return MockSecurityAdapter()
-    return SecurityAdapter(base_url or "http://localhost:5002")
+    return SecurityAdapter(base_url or "http://localhost:5105")

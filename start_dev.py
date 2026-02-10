@@ -13,7 +13,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, PROJECT_ROOT)
 
 
-def find_free_port(start=5000, end=5999):
+def find_free_port(start=5103, end=5199):
     """Find a random free port in the given range."""
     ports = list(range(start, end))
     random.shuffle(ports)
@@ -63,8 +63,8 @@ def main():
     print("  Executive Intelligence - Development Server")
     print("=" * 60)
 
-    # Find a free port
-    port = find_free_port(5300, 5399)
+    # Use assigned port (5103)
+    port = 5103
     print(f"\n🔌 Using port: {port}")
 
     # Load demo data and create app
