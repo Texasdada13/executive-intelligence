@@ -183,6 +183,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/executive-dashboard"><i class="bi bi-diagram-3 me-1"></i>C-Suite View</a></li>
                     <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="/chat"><i class="bi bi-chat-dots me-1"></i>AI CEO</a></li>
                 </ul>
@@ -306,7 +307,8 @@
     const commands = [
         { group: 'Navigation', items: [
             { icon: 'bi-house', title: 'Go to Home', desc: 'Return to landing page', action: () => window.location.href = '/', shortcut: 'G H' },
-            { icon: 'bi-speedometer2', title: 'Go to Dashboard', desc: 'View executive dashboard', action: () => window.location.href = '/dashboard', shortcut: 'G D' },
+            { icon: 'bi-diagram-3', title: 'C-Suite Dashboard', desc: 'Cross-product executive view', action: () => window.location.href = '/executive-dashboard', shortcut: 'G X' },
+            { icon: 'bi-speedometer2', title: 'Go to Dashboard', desc: 'View organization dashboard', action: () => window.location.href = '/dashboard', shortcut: 'G D' },
             { icon: 'bi-chat-dots', title: 'Open AI CEO Chat', desc: 'Start a conversation', action: () => window.location.href = '/chat', shortcut: 'G C' },
         ]},
         { group: 'Actions', items: [

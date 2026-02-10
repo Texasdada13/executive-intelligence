@@ -16,6 +16,11 @@ from src.database.models import UploadedFile
 from src.demo.data_generator import create_executive_demo_generator
 from src.reports.report_generator import create_report_generator
 from src.alerts.alert_engine import create_alert_engine
+from src.integrations.cross_product_aggregator import (
+    get_executive_summary_sync,
+    check_all_health_sync,
+    create_demo_cross_product_data
+)
 
 
 def create_app():
@@ -599,6 +604,67 @@ def create_app():
             'metrics_summary': demo_data['metrics_summary']
         }), 201
 
+    # ==================== CROSS-PRODUCT EXECUTIVE DASHBOARD ====================
+
+    @app.route('/executive-dashboard')
+    def executive_dashboard():
+        """Cross-product executive dashboard page."""
+        return render_template('executive_dashboard.html')
+
+    @app.route('/api/cross-product/summary')
+    def api_cross_product_summary():
+        """
+        Get aggregated executive summary from all C-Suite products.
+
+        This endpoint fetches real-time data from all running products:
+        - CFO (Cash Flow Intelligence) - Port 5101
+        - CTO (App Rationalization Pro) - Port 5102
+        - CMO (Marketing Intelligence) - Port 5104
+        - CISO (Security Intelligence) - Port 5105
+        - COO (Operations Intelligence) - Port 5106
+        - CHRO (Talent Intelligence) - Port 5107
+        """
+        org_id = request.args.get('org_id')
+        use_demo = request.args.get('demo', 'false').lower() == 'true'
+
+        if use_demo:
+            return jsonify(create_demo_cross_product_data())
+
+        try:
+            summary = get_executive_summary_sync(org_id)
+            return jsonify(summary)
+        except Exception as e:
+            # Fall back to demo data if aggregation fails
+            demo_data = create_demo_cross_product_data()
+            demo_data['_fallback'] = True
+            demo_data['_error'] = str(e)
+            return jsonify(demo_data)
+
+    @app.route('/api/cross-product/health')
+    def api_cross_product_health():
+        """Check health status of all C-Suite products."""
+        try:
+            health = check_all_health_sync()
+            online_count = sum(1 for h in health if h['status'] == 'online')
+            return jsonify({
+                'products': health,
+                'total_products': len(health),
+                'online_count': online_count,
+                'offline_count': len(health) - online_count,
+                'status': 'healthy' if online_count == len(health) else 'degraded' if online_count > 0 else 'offline'
+            })
+        except Exception as e:
+            return jsonify({
+                'error': str(e),
+                'status': 'error',
+                'products': []
+            }), 500
+
+    @app.route('/api/cross-product/demo')
+    def api_cross_product_demo():
+        """Get demo data for the executive dashboard."""
+        return jsonify(create_demo_cross_product_data())
+
     @app.route('/health')
     def health():
         return jsonify({'status': 'healthy', 'service': 'executive-intelligence', 'ai_enabled': chat_engine is not None})
@@ -615,4 +681,4 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5103)

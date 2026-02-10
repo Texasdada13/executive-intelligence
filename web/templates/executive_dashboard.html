@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+{% block title %}Executive Dashboard - Cross-Product View{% endblock %}
+
+{% block extra_css %}
+<style>
+    .executive-header {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .overall-health {
+        text-align: center;
+    }
+    .health-grade-large {
+        font-size: 6rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+    .health-grade-large.excellent { color: #4caf50; }
+    .health-grade-large.good { color: #8bc34a; }
+    .health-grade-large.fair { color: #ff9800; }
+    .health-grade-large.poor { color: #ff5722; }
+    .health-grade-large.critical { color: #f44336; }
+
+    .health-score-text {
+        font-size: 1.5rem;
+        color: #aaa;
+    }
+
+    .product-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.25rem;
+        height: 100%;
+        border-left: 4px solid;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+    }
+    .product-card.cfo { border-color: #4caf50; }
+    .product-card.cto { border-color: #2196f3; }
+    .product-card.cmo { border-color: #9c27b0; }
+    .product-card.ciso { border-color: #f44336; }
+    .product-card.coo { border-color: #ff9800; }
+    .product-card.chro { border-color: #00bcd4; }
+
+    .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .product-role {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    .product-role.cfo { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+    .product-role.cto { background: rgba(33, 150, 243, 0.2); color: #2196f3; }
+    .product-role.cmo { background: rgba(156, 39, 176, 0.2); color: #9c27b0; }
+    .product-role.ciso { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+    .product-role.coo { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+    .product-role.chro { background: rgba(0, 188, 212, 0.2); color: #00bcd4; }
+
+    .product-score {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    .product-score.high { color: #4caf50; }
+    .product-score.medium { color: #ff9800; }
+    .product-score.low { color: #f44336; }
+
+    .metric-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .metric-item:last-child { border-bottom: none; }
+    .metric-label { color: #888; font-size: 0.85rem; }
+    .metric-value { font-weight: 600; color: #e8e8e8; }
+
+    .product-highlights {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .highlight-item {
+        font-size: 0.8rem;
+        color: #aaa;
+        padding: 0.2rem 0;
+    }
+    .highlight-item i { margin-right: 0.5rem; color: var(--accent-color); }
+
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    .status-indicator.online { background: #4caf50; }
+    .status-indicator.offline { background: #f44336; }
+    .status-indicator.degraded { background: #ff9800; }
+
+    .recommendations-panel {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .recommendation-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        border-left: 3px solid var(--accent-color);
+    }
+    .recommendation-item i {
+        margin-right: 0.75rem;
+        color: var(--accent-color);
+        margin-top: 0.2rem;
+    }
+
+    .alerts-summary {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .alert-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .alert-badge.critical { background: #f44336; color: white; }
+    .alert-badge.warning { background: #ff9800; color: white; }
+    .alert-badge.info { background: #2196f3; color: white; }
+
+    .chart-panel {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: 320px;
+    }
+
+    .product-status-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+    .status-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #aaa;
+    }
+
+    .quick-links {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    .quick-link {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        background: rgba(255,255,255,0.05);
+        color: #aaa;
+        transition: all 0.2s;
+    }
+    .quick-link:hover {
+        background: var(--accent-color);
+        color: #1a1a1a;
+    }
+
+    .loading-state {
+        text-align: center;
+        padding: 3rem;
+        color: #888;
+    }
+    .loading-state .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="executive-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>Cross-Product Executive Dashboard</h2>
+                <p class="text-muted mb-0">Unified view across all Fractional C-Suite products</p>
+
+                <div class="product-status-bar mt-3" id="statusBar">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="overall-health">
+                    <div class="health-grade-large good" id="overallGrade">--</div>
+                    <div class="health-score-text" id="overallScore">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-light btn-sm" onclick="refreshData()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+            <button class="btn btn-outline-light btn-sm" onclick="loadDemoData()">
+                <i class="bi bi-magic me-1"></i>Demo Data
+            </button>
+        </div>
+        <div class="alerts-summary" id="alertsSummary">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+        <div class="spinner-border text-warning" role="status"></div>
+        <h5>Fetching data from all products...</h5>
+        <p class="text-muted">Connecting to CFO, CTO, CMO, CISO, COO, CHRO systems</p>
+    </div>
+
+    <!-- Main Content (hidden until loaded) -->
+    <div id="mainContent" style="display: none;">
+        <!-- C-Suite Product Cards -->
+        <div class="row g-4 mb-4" id="productCards">
+            <!-- CFO Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card cfo" id="cardCFO">
+                    <div class="product-header">
+                        <span class="product-role cfo">CFO</span>
+                        <span class="product-score high" id="scoreCFO">--</span>
+                    </div>
+                    <h6>Cash Flow Intelligence</h6>
+                    <div class="metrics-list" id="metricsCFO">
+                        <div class="metric-item"><span class="metric-label">Revenue Growth</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Profit Margin</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Cash Runway</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Burn Rate</span><span class="metric-value">--</span></div>
+                    </div>
+                    <div class="product-highlights" id="highlightsCFO"></div>
+                    <div class="quick-links">
+                        <a href="http://localhost:5101/dashboard" target="_blank" class="quick-link"><i class="bi bi-box-arrow-up-right"></i> Open CFO Dashboard</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTO Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card cto" id="cardCTO">
+                    <div class="product-header">
+                        <span class="product-role cto">CTO</span>
+                        <span class="product-score medium" id="scoreCTO">--</span>
+                    </div>
+                    <h6>App Rationalization Pro</h6>
+                    <div class="metrics-list" id="metricsCTO">
+                        <div class="metric-item"><span class="metric-label">Total Apps</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Avg Score</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Eliminate</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Invest</span><span class="metric-value">--</span></div>
+                    </div>
+                    <div class="product-highlights" id="highlightsCTO"></div>
+                    <div class="quick-links">
+                        <a href="http://localhost:5102/dashboard" target="_blank" class="quick-link"><i class="bi bi-box-arrow-up-right"></i> Open CTO Dashboard</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CMO Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card cmo" id="cardCMO">
+                    <div class="product-header">
+                        <span class="product-role cmo">CMO</span>
+                        <span class="product-score high" id="scoreCMO">--</span>
+                    </div>
+                    <h6>Marketing Intelligence</h6>
+                    <div class="metrics-list" id="metricsCMO">
+                        <div class="metric-item"><span class="metric-label">Campaign ROI</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Active Campaigns</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Lead Conversion</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">CAC</span><span class="metric-value">--</span></div>
+                    </div>
+                    <div class="product-highlights" id="highlightsCMO"></div>
+                    <div class="quick-links">
+                        <a href="http://localhost:5104/dashboard" target="_blank" class="quick-link"><i class="bi bi-box-arrow-up-right"></i> Open CMO Dashboard</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CISO Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card ciso" id="cardCISO">
+                    <div class="product-header">
+                        <span class="product-role ciso">CISO</span>
+                        <span class="product-score medium" id="scoreCISO">--</span>
+                    </div>
+                    <h6>Security Intelligence</h6>
+                    <div class="metrics-list" id="metricsCISO">
+                        <div class="metric-item"><span class="metric-label">Security Score</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Open Vulns</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Incidents MTD</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Compliance</span><span class="metric-value">--</span></div>
+                    </div>
+                    <div class="product-highlights" id="highlightsCISO"></div>
+                    <div class="quick-links">
+                        <a href="http://localhost:5105/dashboard" target="_blank" class="quick-link"><i class="bi bi-box-arrow-up-right"></i> Open CISO Dashboard</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COO Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card coo" id="cardCOO">
+                    <div class="product-header">
+                        <span class="product-role coo">COO</span>
+                        <span class="product-score high" id="scoreCOO">--</span>
+                    </div>
+                    <h6>Operations Intelligence</h6>
+                    <div class="metrics-list" id="metricsCOO">
+                        <div class="metric-item"><span class="metric-label">Efficiency</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Utilization</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Cycle Time</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Quality Rate</span><span class="metric-value">--</span></div>
+                    </div>
+                    <div class="product-highlights" id="highlightsCOO"></div>
+                    <div class="quick-links">
+                        <a href="http://localhost:5106/dashboard" target="_blank" class="quick-link"><i class="bi bi-box-arrow-up-right"></i> Open COO Dashboard</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHRO Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card chro" id="cardCHRO">
+                    <div class="product-header">
+                        <span class="product-role chro">CHRO</span>
+                        <span class="product-score medium" id="scoreCHRO">--</span>
+                    </div>
+                    <h6>Talent Intelligence</h6>
+                    <div class="metrics-list" id="metricsCHRO">
+                        <div class="metric-item"><span class="metric-label">Engagement</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Attrition</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Hiring Velocity</span><span class="metric-value">--</span></div>
+                        <div class="metric-item"><span class="metric-label">Diversity</span><span class="metric-value">--</span></div>
+                    </div>
+                    <div class="product-highlights" id="highlightsCHRO"></div>
+                    <div class="quick-links">
+                        <a href="http://localhost:5107/dashboard" target="_blank" class="quick-link"><i class="bi bi-box-arrow-up-right"></i> Open CHRO Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Recommendations Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="chart-panel">
+                    <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>C-Suite Health Comparison</h6>
+                    <canvas id="healthChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="recommendations-panel">
+                    <h6 class="mb-3"><i class="bi bi-lightbulb me-2"></i>Executive Recommendations</h6>
+                    <div id="recommendationsList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trend Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="chart-panel" style="height: 280px;">
+                    <h6 class="mb-3"><i class="bi bi-graph-up me-2"></i>Health Score Distribution</h6>
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let healthChart, distributionChart;
+
+const roleColors = {
+    CFO: '#4caf50',
+    CTO: '#2196f3',
+    CMO: '#9c27b0',
+    CISO: '#f44336',
+    COO: '#ff9800',
+    CHRO: '#00bcd4'
+};
+
+const roleOrder = ['CFO', 'CTO', 'CMO', 'CISO', 'COO', 'CHRO'];
+
+function initCharts() {
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#e8e8e8' } } },
+        scales: {
+            x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+            y: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true, max: 100 }
+        }
+    };
+
+    healthChart = new Chart(document.getElementById('healthChart'), {
+        type: 'bar',
+        data: {
+            labels: roleOrder,
+            datasets: [{
+                label: 'Health Score',
+                data: [0, 0, 0, 0, 0, 0],
+                backgroundColor: roleOrder.map(r => roleColors[r]),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            ...chartOptions,
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    distributionChart = new Chart(document.getElementById('distributionChart'), {
+        type: 'radar',
+        data: {
+            labels: ['Financial Health', 'Technology', 'Marketing', 'Security', 'Operations', 'People'],
+            datasets: [{
+                label: 'Current Score',
+                data: [0, 0, 0, 0, 0, 0],
+                borderColor: 'rgba(255, 215, 0, 0.8)',
+                backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                pointBackgroundColor: 'rgba(255, 215, 0, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    ticks: { color: '#888', backdropColor: 'transparent' },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    pointLabels: { color: '#e8e8e8' },
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function getScoreClass(score) {
+    if (score >= 75) return 'high';
+    if (score >= 50) return 'medium';
+    return 'low';
+}
+
+function getGradeClass(level) {
+    return level.toLowerCase();
+}
+
+function updateOverallHealth(data) {
+    const gradeEl = document.getElementById('overallGrade');
+    const scoreEl = document.getElementById('overallScore');
+
+    gradeEl.textContent = data.overall_grade || '--';
+    gradeEl.className = 'health-grade-large ' + getGradeClass(data.overall_health_level || 'fair');
+    scoreEl.textContent = `${data.overall_health_score?.toFixed(1) || '--'} / 100`;
+}
+
+function updateStatusBar(healthData) {
+    const bar = document.getElementById('statusBar');
+    let html = '';
+
+    if (healthData && Array.isArray(healthData)) {
+        healthData.forEach(h => {
+            const status = h.status || 'unknown';
+            html += `
+                <div class="status-item">
+                    <span class="status-indicator ${status}"></span>
+                    <span>${h.role}</span>
+                </div>
+            `;
+        });
+    }
+
+    bar.innerHTML = html;
+}
+
+function updateAlertsSummary(data) {
+    const summary = document.getElementById('alertsSummary');
+    let html = '';
+
+    if (data.critical_alerts > 0) {
+        html += `<span class="alert-badge critical">${data.critical_alerts} Critical</span>`;
+    }
+    if (data.total_alerts > data.critical_alerts) {
+        const other = data.total_alerts - data.critical_alerts;
+        html += `<span class="alert-badge warning">${other} Warnings</span>`;
+    }
+    if (data.total_alerts === 0) {
+        html = '<span class="alert-badge info">No Active Alerts</span>';
+    }
+
+    summary.innerHTML = html;
+}
+
+function updateProductCard(role, productData) {
+    const lowerRole = role.toLowerCase();
+    const scoreEl = document.getElementById('score' + role);
+    const metricsEl = document.getElementById('metrics' + role);
+    const highlightsEl = document.getElementById('highlights' + role);
+
+    if (!productData) return;
+
+    // Update score
+    const score = productData.health_score || 0;
+    scoreEl.textContent = score.toFixed(0);
+    scoreEl.className = 'product-score ' + getScoreClass(score);
+
+    // Update metrics
+    if (productData.key_metrics) {
+        const metrics = productData.key_metrics;
+        let metricsHtml = '';
+        Object.entries(metrics).forEach(([key, value]) => {
+            if (key !== 'status') {
+                const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                metricsHtml += `<div class="metric-item"><span class="metric-label">${label}</span><span class="metric-value">${value}</span></div>`;
+            }
+        });
+        metricsEl.innerHTML = metricsHtml;
+    }
+
+    // Update highlights
+    if (productData.highlights && productData.highlights.length > 0) {
+        let highlightsHtml = '';
+        productData.highlights.forEach(h => {
+            highlightsHtml += `<div class="highlight-item"><i class="bi bi-check-circle"></i>${h}</div>`;
+        });
+        highlightsEl.innerHTML = highlightsHtml;
+    }
+}
+
+function updateRecommendations(recommendations) {
+    const list = document.getElementById('recommendationsList');
+
+    if (!recommendations || recommendations.length === 0) {
+        list.innerHTML = '<div class="text-muted">No recommendations at this time.</div>';
+        return;
+    }
+
+    let html = '';
+    recommendations.forEach(rec => {
+        let icon = 'bi-info-circle';
+        if (rec.toLowerCase().includes('critical') || rec.toLowerCase().includes('security')) {
+            icon = 'bi-exclamation-triangle';
+        } else if (rec.toLowerCase().includes('review') || rec.toLowerCase().includes('consider')) {
+            icon = 'bi-lightbulb';
+        } else if (rec.toLowerCase().includes('cash') || rec.toLowerCase().includes('financial')) {
+            icon = 'bi-currency-dollar';
+        }
+
+        html += `
+            <div class="recommendation-item">
+                <i class="bi ${icon}"></i>
+                <span>${rec}</span>
+            </div>
+        `;
+    });
+
+    list.innerHTML = html;
+}
+
+function updateCharts(products) {
+    if (!products) return;
+
+    // Extract scores by role
+    const scores = {};
+    products.forEach(p => {
+        scores[p.role] = p.health_score || 0;
+    });
+
+    // Update bar chart
+    healthChart.data.datasets[0].data = roleOrder.map(r => scores[r] || 0);
+    healthChart.update();
+
+    // Update radar chart
+    distributionChart.data.datasets[0].data = roleOrder.map(r => scores[r] || 0);
+    distributionChart.update();
+}
+
+async function loadData(useDemo = false) {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+
+    try {
+        const url = useDemo ? '/api/cross-product/demo' : '/api/cross-product/summary';
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Update overall health
+        updateOverallHealth(data);
+
+        // Update status bar
+        updateStatusBar(data.product_health);
+
+        // Update alerts summary
+        updateAlertsSummary(data);
+
+        // Update product cards
+        if (data.products) {
+            data.products.forEach(p => {
+                updateProductCard(p.role, p);
+            });
+        }
+
+        // Update recommendations
+        updateRecommendations(data.recommendations);
+
+        // Update charts
+        updateCharts(data.products);
+
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+
+    } catch (error) {
+        console.error('Error loading data:', error);
+        // Fall back to demo data
+        loadDemoData();
+    }
+}
+
+function loadDemoData() {
+    loadData(true);
+}
+
+function refreshData() {
+    loadData(false);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    // Load with demo=true parameter to always show data even if products aren't running
+    loadData(true);
+});
+</script>
+{% endblock %}
