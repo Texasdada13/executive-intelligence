@@ -15,65 +15,31 @@
 <div class="container">
     <div class="row mb-5">
         <div class="col-12 text-center mb-4">
-            <h2>Executive Leadership for SMBs</h2>
-            <p class="text-muted">Strategic vision and cross-functional coordination without the full-time executive cost</p>
+            <h2 class="text-white">Executive Leadership for SMBs</h2>
+            <p style="color:#b0b8c4;">Strategic vision and cross-functional coordination without the full-time executive cost</p>
         </div>
     </div>
     <div class="row g-4 mb-5">
+        {% for icon, title, desc, url in [
+            ('bi-heart-pulse', 'Business Health', 'Comprehensive health scoring across financial, operational, customer, and people dimensions', '/business-health'),
+            ('bi-compass', 'Strategic Planning', 'OKR framework, goal tracking, and strategic alignment across the organization', '/strategic-planning'),
+            ('bi-people', 'Board Reporting', 'Executive-ready board decks, investor updates, and stakeholder communication', '/board-reporting'),
+            ('bi-diagram-3', 'C-Suite Coordination', 'Unified view across CFO, CTO, COO, CHRO, CMO, and CISO functions', '/csuite-coordination'),
+            ('bi-graph-up-arrow', 'Growth Strategy', 'Market expansion, M&A opportunities, and sustainable scaling strategies', '/growth-strategy'),
+            ('bi-shield-exclamation', 'Enterprise Risk', 'Comprehensive risk visibility across strategic, operational, and market dimensions', '/enterprise-risk')
+        ] %}
         <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto"><i class="bi bi-heart-pulse text-dark"></i></div>
-                    <h5>Business Health</h5>
-                    <p class="text-muted">Comprehensive health scoring across financial, operational, customer, and people dimensions</p>
+            <a href="{{ url }}" class="text-decoration-none">
+                <div class="card h-100" style="transition: transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 8px 25px rgba(255,215,0,0.2)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mx-auto"><i class="bi {{ icon }} text-dark"></i></div>
+                        <h5>{{ title }}</h5>
+                        <p class="text-muted">{{ desc }}</p>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto"><i class="bi bi-compass text-dark"></i></div>
-                    <h5>Strategic Planning</h5>
-                    <p class="text-muted">OKR framework, goal tracking, and strategic alignment across the organization</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto"><i class="bi bi-people text-dark"></i></div>
-                    <h5>Board Reporting</h5>
-                    <p class="text-muted">Executive-ready board decks, investor updates, and stakeholder communication</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto"><i class="bi bi-diagram-3 text-dark"></i></div>
-                    <h5>C-Suite Coordination</h5>
-                    <p class="text-muted">Unified view across CFO, CTO, COO, CHRO, CMO, and CISO functions</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto"><i class="bi bi-graph-up-arrow text-dark"></i></div>
-                    <h5>Growth Strategy</h5>
-                    <p class="text-muted">Market expansion, M&A opportunities, and sustainable scaling strategies</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto"><i class="bi bi-shield-exclamation text-dark"></i></div>
-                    <h5>Enterprise Risk</h5>
-                    <p class="text-muted">Comprehensive risk visibility across strategic, operational, and market dimensions</p>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
     <div class="row mb-5">
         <div class="col-12">
@@ -82,8 +48,8 @@
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <p class="mb-2">Get executive-level strategic guidance powered by Claude AI:</p>
-                            <ul class="text-muted">
+                            <p class="mb-2" style="color:#e6edf3;">Get executive-level strategic guidance powered by Claude AI:</p>
+                            <ul style="color:#c9d1d9;">
                                 <li>Business health assessment and diagnostics</li>
                                 <li>Strategic planning and goal setting</li>
                                 <li>Board meeting preparation</li>

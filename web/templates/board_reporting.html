@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Board Reporting - Executive Intelligence{% endblock %}
+{% block extra_css %}
+<style>
+    .report-card { padding: 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-left: 4px solid var(--accent-color); cursor: pointer; transition: transform 0.15s; }
+    .report-card:hover { transform: translateX(4px); }
+    .kpi-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .kpi-row:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="text-white"><i class="bi bi-people me-2" style="color:var(--accent-color);"></i>Board Reporting</h2>
+            <p style="color:#8b949e;">Executive-ready board decks, investor updates, and stakeholder communication</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ffd700;">Q2</div><small style="color:#8b949e;">Reporting Period</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">$4.1M</div><small style="color:#8b949e;">ARR</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">+18%</div><small style="color:#8b949e;">QoQ Growth</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#1e88e5;">142</div><small style="color:#8b949e;">Customers</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ff9800;">18.2%</div><small style="color:#8b949e;">Profit Margin</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">24 mo</div><small style="color:#8b949e;">Cash Runway</small></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Revenue & Growth Trend</h5></div>
+                <div class="card-body"><canvas id="revenueChart" height="280"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Board KPI Summary</h5></div>
+                <div class="card-body" id="kpiSummary"></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white">Recent Board Reports</h5></div>
+                <div class="card-body" id="reportsList"></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Revenue Breakdown</h5></div>
+                <div class="card-body"><canvas id="revenueBreakdown" height="220"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Investor Metrics</h5></div>
+                <div class="card-body"><canvas id="investorChart" height="220"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white"><i class="bi bi-megaphone me-2"></i>Key Messages for Board</h5></div>
+                <div class="card-body" id="keyMessages"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Revenue & Growth Trend
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels: ['Q1 2025','Q2 2025','Q3 2025','Q4 2025','Q1 2026','Q2 2026'],
+        datasets: [
+            {label:'ARR ($M)',data:[2.1,2.5,2.9,3.2,3.6,4.1],borderColor:'#ffd700',backgroundColor:'rgba(255,215,0,0.1)',fill:true,tension:0.3,borderWidth:3,yAxisID:'y'},
+            {label:'QoQ Growth %',data:[22,19,16,10,12.5,18],borderColor:'#4caf50',tension:0.3,fill:false,yAxisID:'y1'},
+            {label:'MRR ($K)',data:[175,208,242,267,300,342],borderColor:'#1e88e5',borderDash:[5,5],tension:0.3,fill:false,yAxisID:'y'}
+        ]
+    },
+    options: {responsive:true, scales:{y:{ticks:{color:'#b0b8c4',callback:v=>'$'+v+'M'},grid:{color:'rgba(255,255,255,0.1)'}},y1:{position:'right',ticks:{color:'#b0b8c4',callback:v=>v+'%'},grid:{display:false}},x:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Revenue Breakdown
+new Chart(document.getElementById('revenueBreakdown'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Enterprise','Mid-Market','SMB','Self-Serve'],
+        datasets: [{data:[42,28,22,8],backgroundColor:['#ffd700','#ff8c00','#1e88e5','#4caf50']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Investor Metrics
+new Chart(document.getElementById('investorChart'), {
+    type: 'bar',
+    data: {
+        labels: ['NDR %','Gross Margin','LTV:CAC','Magic Number','Rule of 40'],
+        datasets: [
+            {label:'Actual',data:[118,72,3.5,0.8,38],backgroundColor:'rgba(255,215,0,0.6)'},
+            {label:'Target',data:[120,75,4.0,1.0,40],backgroundColor:'rgba(139,148,158,0.3)'}
+        ]
+    },
+    options: {responsive:true, scales:{y:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Board KPI Summary
+const KPIS = [
+    {kpi:'Annual Recurring Revenue',value:'$4.1M',target:'$5.0M',change:'+18%',status:'on_track'},
+    {kpi:'Net Dollar Retention',value:'118%',target:'120%',change:'+3%',status:'near'},
+    {kpi:'Gross Margin',value:'72%',target:'75%',change:'+2%',status:'near'},
+    {kpi:'Customer Count',value:'142',target:'175',change:'+15',status:'on_track'},
+    {kpi:'Employee Count',value:'68',target:'85',change:'+12',status:'on_track'},
+    {kpi:'Monthly Burn Rate',value:'$125K',target:'$110K',change:'-8%',status:'at_risk'},
+    {kpi:'Cash Runway',value:'24 months',target:'18+ months',change:'Healthy',status:'on_track'},
+    {kpi:'NPS Score',value:'42',target:'50',change:'+5',status:'near'},
+    {kpi:'Churn Rate',value:'3.2%',target:'<3%',change:'-0.5%',status:'near'},
+    {kpi:'CAC Payback',value:'8 months',target:'<12 months',change:'-2 mo',status:'on_track'}
+];
+
+document.getElementById('kpiSummary').innerHTML = `<div class="table-responsive"><table class="table"><thead><tr><th>KPI</th><th>Actual</th><th>Target</th><th>Change</th><th>Status</th></tr></thead><tbody>${KPIS.map(k => {
+    const color = k.status==='on_track'?'#4caf50':k.status==='near'?'#ff9800':'#f44336';
+    const label = k.status==='on_track'?'On Track':k.status==='near'?'Near':'At Risk';
+    return `<tr><td style="color:#e6edf3;">${k.kpi}</td><td style="color:#ffd700;font-weight:600;">${k.value}</td><td style="color:#8b949e;">${k.target}</td><td style="color:#4caf50;">${k.change}</td><td><span class="badge" style="background:${color};">${label}</span></td></tr>`;
+}).join('')}</tbody></table></div>`;
+
+// Recent Reports
+const REPORTS = [
+    {title:'Q2 2026 Board Deck',date:'Feb 10, 2026',type:'Quarterly Review',status:'Draft',pages:24},
+    {title:'January Investor Update',date:'Feb 1, 2026',type:'Monthly Update',status:'Sent',pages:8},
+    {title:'Q1 2026 Board Deck',date:'Nov 15, 2025',type:'Quarterly Review',status:'Approved',pages:28},
+    {title:'Series B Preparation Memo',date:'Oct 20, 2025',type:'Fundraising',status:'Final',pages:15},
+    {title:'Annual Strategy Review 2025',date:'Sep 1, 2025',type:'Annual Review',status:'Approved',pages:42}
+];
+
+document.getElementById('reportsList').innerHTML = REPORTS.map(r => {
+    const statusColor = r.status==='Draft'?'#ff9800':r.status==='Sent'?'#1e88e5':'#4caf50';
+    return `<div class="report-card"><div class="d-flex justify-content-between align-items-center"><div><strong style="color:#e6edf3;">${r.title}</strong><br><small style="color:#8b949e;">${r.date} &middot; ${r.type} &middot; ${r.pages} pages</small></div><span class="badge" style="background:${statusColor};">${r.status}</span></div></div>`;
+}).join('');
+
+// Key Messages
+const MESSAGES = [
+    {message:'Revenue acceleration: Q2 growth of 18% QoQ, strongest quarter since Q1 2025',tone:'Positive',category:'Growth'},
+    {message:'Enterprise segment driving 42% of revenue with higher margins and lower churn',tone:'Positive',category:'Revenue Mix'},
+    {message:'Series B preparation on track - data room complete, engaging target VCs',tone:'Neutral',category:'Fundraising'},
+    {message:'Burn rate above target at $125K/mo - optimization plan in place for Q3',tone:'Caution',category:'Cash Management'},
+    {message:'Key hire: VP Engineering joined, completing executive team build-out',tone:'Positive',category:'Team'}
+];
+
+document.getElementById('keyMessages').innerHTML = MESSAGES.map(m => {
+    const color = m.tone==='Positive'?'#4caf50':m.tone==='Caution'?'#ff9800':'#ffd700';
+    return `<div class="d-flex align-items-start gap-2 mb-3"><span class="badge" style="background:${color};min-width:50px;font-size:0.7rem;">${m.category}</span><div><span style="color:#e6edf3;font-size:0.9rem;">${m.message}</span></div></div>`;
+}).join('');
+</script>
+{% endblock %}

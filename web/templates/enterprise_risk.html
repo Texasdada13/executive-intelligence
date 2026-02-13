@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Enterprise Risk - Executive Intelligence{% endblock %}
+{% block extra_css %}
+<style>
+    .risk-card { padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-left: 4px solid transparent; }
+    .severity-critical { border-left-color: #f44336; }
+    .severity-high { border-left-color: #ff9800; }
+    .severity-medium { border-left-color: #ffd700; }
+    .severity-low { border-left-color: #4caf50; }
+    .risk-matrix-cell { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="text-white"><i class="bi bi-shield-exclamation me-2" style="color:var(--accent-color);"></i>Enterprise Risk</h2>
+            <p style="color:#8b949e;">Comprehensive risk visibility across strategic, operational, and market dimensions</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ff9800;">Medium</div><small style="color:#8b949e;">Overall Risk Level</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#f44336;">2</div><small style="color:#8b949e;">Critical Risks</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ff9800;">5</div><small style="color:#8b949e;">High Risks</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ffd700;">8</div><small style="color:#8b949e;">Medium Risks</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">6</div><small style="color:#8b949e;">Low Risks</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#1e88e5;">68%</div><small style="color:#8b949e;">Mitigated</small></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Risk Landscape</h5></div>
+                <div class="card-body"><canvas id="riskRadar" height="320"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Risk Register</h5></div>
+                <div class="card-body" id="riskRegister"></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Risk Distribution</h5></div>
+                <div class="card-body"><canvas id="distributionChart" height="220"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Risk Trend</h5></div>
+                <div class="card-body"><canvas id="trendChart" height="200"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Risk by Category</h5></div>
+                <div class="card-body"><canvas id="categoryChart" height="220"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white"><i class="bi bi-shield-check me-2"></i>Mitigation Priorities</h5></div>
+                <div class="card-body" id="mitigations"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const RISKS = [
+    {risk:'Key Person Dependency (CTO)',category:'People',severity:'Critical',likelihood:'Medium',impact:'High',owner:'CEO',mitigation:'Cross-train 2 senior engineers, document architecture',status:'In Progress'},
+    {risk:'Cash Runway below 18 months if growth stalls',category:'Financial',severity:'Critical',likelihood:'Low',impact:'Critical',owner:'CFO',mitigation:'Accelerate Series B, reduce burn rate contingency plan',status:'Monitoring'},
+    {risk:'Data breach or security incident',category:'Security',severity:'High',likelihood:'Medium',impact:'High',owner:'CISO',mitigation:'SOC2 certification, pen testing, incident response plan',status:'In Progress'},
+    {risk:'Competitor launches similar AI features',category:'Market',severity:'High',likelihood:'High',impact:'Medium',owner:'CTO',mitigation:'Accelerate AI roadmap, build proprietary data moat',status:'Active'},
+    {risk:'Customer concentration (top 3 = 28% revenue)',category:'Revenue',severity:'High',likelihood:'Medium',impact:'High',owner:'CMO',mitigation:'Diversify pipeline, 50+ customer target by Q4',status:'In Progress'},
+    {risk:'Regulatory changes in target markets',category:'Compliance',severity:'High',likelihood:'Medium',impact:'Medium',owner:'CEO',mitigation:'Legal counsel engaged, compliance monitoring setup',status:'Monitoring'},
+    {risk:'Engineering talent retention',category:'People',severity:'High',likelihood:'High',impact:'Medium',owner:'CHRO',mitigation:'Retention bonuses, equity refresh, career development',status:'Active'},
+    {risk:'Third-party API dependency (3 critical vendors)',category:'Technology',severity:'Medium',likelihood:'Medium',impact:'Medium',owner:'CTO',mitigation:'Build abstraction layers, evaluate alternatives',status:'Planning'},
+    {risk:'Market downturn affecting SMB segment',category:'Market',severity:'Medium',likelihood:'Medium',impact:'Medium',owner:'CFO',mitigation:'Enterprise upmarket shift, diversify segments',status:'In Progress'},
+    {risk:'Supply chain disruption (cloud costs)',category:'Operational',severity:'Medium',likelihood:'Low',impact:'Medium',owner:'COO',mitigation:'Multi-cloud strategy, reserved instances',status:'Active'},
+    {risk:'Intellectual property infringement claim',category:'Legal',severity:'Medium',likelihood:'Low',impact:'High',owner:'CEO',mitigation:'IP audit completed, patent applications filed',status:'Complete'},
+    {risk:'Product scalability at 10x current load',category:'Technology',severity:'Medium',likelihood:'Medium',impact:'Medium',owner:'CTO',mitigation:'Load testing program, architecture review',status:'In Progress'}
+];
+
+// Risk Landscape Radar
+new Chart(document.getElementById('riskRadar'), {
+    type: 'radar',
+    data: {
+        labels: ['Strategic','Financial','Market','Technology','People','Security','Compliance','Operational'],
+        datasets: [
+            {label:'Risk Exposure',data:[72,65,78,58,75,62,48,42],backgroundColor:'rgba(244,67,54,0.2)',borderColor:'#f44336',pointBackgroundColor:'#f44336'},
+            {label:'Mitigation Coverage',data:[55,60,45,70,50,72,80,65],backgroundColor:'rgba(76,175,80,0.15)',borderColor:'#4caf50',pointBackgroundColor:'#4caf50'},
+            {label:'Target (30 or below)',data:[30,30,30,30,30,30,30,30],backgroundColor:'rgba(255,215,0,0.05)',borderColor:'#ffd700',borderDash:[5,5],pointBackgroundColor:'#ffd700'}
+        ]
+    },
+    options: {responsive:true, scales:{r:{beginAtZero:true,max:100,grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'#b0b8c4',font:{size:11}},ticks:{display:false}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Risk Distribution
+new Chart(document.getElementById('distributionChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Critical','High','Medium','Low'],
+        datasets: [{data:[2,5,8,6],backgroundColor:['#f44336','#ff9800','#ffd700','#4caf50']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Risk Trend
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: ['Q3 25','Q4 25','Q1 26','Q2 26'],
+        datasets: [
+            {label:'Critical',data:[3,3,2,2],borderColor:'#f44336',tension:0.3},
+            {label:'High',data:[7,6,6,5],borderColor:'#ff9800',tension:0.3},
+            {label:'Medium',data:[10,9,8,8],borderColor:'#ffd700',tension:0.3},
+            {label:'Low',data:[4,5,5,6],borderColor:'#4caf50',tension:0.3}
+        ]
+    },
+    options: {responsive:true, scales:{y:{ticks:{color:'#b0b8c4',stepSize:1},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Risk by Category
+new Chart(document.getElementById('categoryChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Market','People','Technology','Financial','Security','Compliance','Operational','Legal'],
+        datasets: [
+            {label:'Exposure',data:[78,75,58,65,62,48,42,35],backgroundColor:'rgba(244,67,54,0.5)'},
+            {label:'Mitigated',data:[45,50,70,60,72,80,65,90],backgroundColor:'rgba(76,175,80,0.5)'}
+        ]
+    },
+    options: {responsive:true, scales:{y:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Risk Register
+document.getElementById('riskRegister').innerHTML = RISKS.map(r => {
+    const sevClass = 'severity-'+r.severity.toLowerCase();
+    const sevColor = r.severity==='Critical'?'#f44336':r.severity==='High'?'#ff9800':r.severity==='Medium'?'#ffd700':'#4caf50';
+    const statusColor = r.status==='Complete'?'#4caf50':r.status==='Active'||r.status==='In Progress'?'#1e88e5':r.status==='Monitoring'?'#ff9800':'#8b949e';
+    return `<div class="risk-card ${sevClass}">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+            <div><strong style="color:#e6edf3;">${r.risk}</strong></div>
+            <span class="badge" style="background:${sevColor};font-size:0.7rem;">${r.severity}</span>
+        </div>
+        <div class="d-flex gap-3 mb-1">
+            <small style="color:#8b949e;">${r.category}</small>
+            <small style="color:#8b949e;">Likelihood: <strong style="color:#e6edf3;">${r.likelihood}</strong></small>
+            <small style="color:#8b949e;">Impact: <strong style="color:#e6edf3;">${r.impact}</strong></small>
+            <small style="color:#8b949e;">Owner: <strong style="color:#e6edf3;">${r.owner}</strong></small>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <small style="color:#c9d1d9;"><i class="bi bi-shield-check me-1" style="color:#4caf50;"></i>${r.mitigation}</small>
+            <span class="badge" style="background:${statusColor};font-size:0.65rem;">${r.status}</span>
+        </div>
+    </div>`;
+}).join('');
+
+// Mitigation Priorities
+const MITIGATIONS = [
+    {action:'Complete CTO cross-training and architecture documentation by Q2 end',risk:'Key Person Dependency',priority:'Critical',timeline:'6 weeks'},
+    {action:'Close Series B term sheet to extend runway beyond 24 months',risk:'Cash Runway',priority:'Critical',timeline:'Q3 2026'},
+    {action:'Achieve SOC2 Type II certification to reduce security risk',risk:'Data Breach',priority:'High',timeline:'Q3 2026'},
+    {action:'Diversify revenue - reduce top-3 customer concentration to <20%',risk:'Customer Concentration',priority:'High',timeline:'Q4 2026'},
+    {action:'Implement engineering retention program with equity refresh',risk:'Talent Retention',priority:'High',timeline:'4 weeks'}
+];
+
+document.getElementById('mitigations').innerHTML = MITIGATIONS.map(m => {
+    const color = m.priority==='Critical'?'#f44336':m.priority==='High'?'#ff9800':'#ffd700';
+    return `<div class="d-flex align-items-start gap-2 mb-3"><span class="badge" style="background:${color};min-width:55px;font-size:0.7rem;">${m.priority}</span><div><span style="color:#e6edf3;font-size:0.9rem;">${m.action}</span><br><small style="color:#8b949e;">Risk: ${m.risk}</small> <small style="color:#ffd700;">Timeline: ${m.timeline}</small></div></div>`;
+}).join('');
+</script>
+{% endblock %}

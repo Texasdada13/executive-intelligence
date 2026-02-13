@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Business Health - Executive Intelligence{% endblock %}
+{% block extra_css %}
+<style>
+    .health-gauge { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; margin: 0 auto 1rem; }
+    .dimension-bar { height: 10px; border-radius: 5px; background: rgba(255,255,255,0.1); overflow: hidden; }
+    .dimension-fill { height: 100%; border-radius: 5px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="text-white"><i class="bi bi-heart-pulse me-2" style="color:var(--accent-color);"></i>Business Health</h2>
+            <p style="color:#8b949e;">Comprehensive health scoring across financial, operational, customer, and people dimensions</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">B+</div><small style="color:#8b949e;">Overall Grade</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ffd700;">78</div><small style="color:#8b949e;">Health Score</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">+6</div><small style="color:#8b949e;">vs Last Quarter</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#1e88e5;">5</div><small style="color:#8b949e;">Strengths</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ff9800;">3</div><small style="color:#8b949e;">Watch Areas</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#f44336;">1</div><small style="color:#8b949e;">Critical</small></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Health Dimensions Radar</h5></div>
+                <div class="card-body"><canvas id="radarChart" height="320"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Health Score Trend</h5></div>
+                <div class="card-body"><canvas id="trendChart" height="260"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white">Dimension Breakdown</h5></div>
+                <div class="card-body" id="dimensionBreakdown"></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">C-Suite Health Scores</h5></div>
+                <div class="card-body"><canvas id="csuiteChart" height="260"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Quarter-over-Quarter Change</h5></div>
+                <div class="card-body"><canvas id="qoqChart" height="220"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white"><i class="bi bi-exclamation-triangle me-2"></i>Action Items</h5></div>
+                <div class="card-body" id="actionItems"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Health Dimensions Radar
+new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+        labels: ['Financial','Operational','Customer','People','Technology','Market','Compliance','Innovation'],
+        datasets: [
+            {label:'Current',data:[82,76,85,72,81,68,88,65],backgroundColor:'rgba(255,215,0,0.2)',borderColor:'#ffd700',pointBackgroundColor:'#ffd700'},
+            {label:'Last Quarter',data:[78,72,80,70,78,65,85,60],backgroundColor:'rgba(255,140,0,0.1)',borderColor:'#ff8c00',borderDash:[5,5],pointBackgroundColor:'#ff8c00'},
+            {label:'Industry Avg',data:[70,70,70,70,70,70,70,70],backgroundColor:'rgba(139,148,158,0.1)',borderColor:'#8b949e',borderDash:[3,3],pointBackgroundColor:'#8b949e'}
+        ]
+    },
+    options: {responsive:true, scales:{r:{beginAtZero:true,max:100,grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'#b0b8c4',font:{size:11}},ticks:{display:false}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Health Score Trend
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: ['Q1 2025','Q2 2025','Q3 2025','Q4 2025','Q1 2026','Q2 2026'],
+        datasets: [
+            {label:'Health Score',data:[62,66,70,72,76,78],borderColor:'#ffd700',backgroundColor:'rgba(255,215,0,0.1)',fill:true,tension:0.3,borderWidth:3},
+            {label:'Industry Benchmark',data:[68,69,70,70,71,72],borderColor:'#8b949e',borderDash:[5,5],tension:0.3,fill:false}
+        ]
+    },
+    options: {responsive:true, scales:{y:{min:50,max:100,ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// C-Suite Health Scores
+new Chart(document.getElementById('csuiteChart'), {
+    type: 'bar',
+    data: {
+        labels: ['CEO','CFO','CTO','COO','CMO','CHRO','CISO'],
+        datasets: [{
+            label:'Health Score',
+            data:[85,78,81,76,72,69,74],
+            backgroundColor: function(ctx) {
+                const v = ctx.raw;
+                return v >= 80 ? '#4caf50' : v >= 70 ? '#ff9800' : '#f44336';
+            }
+        }]
+    },
+    options: {responsive:true, indexAxis:'y', scales:{x:{min:0,max:100,ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.1)'}}}, plugins:{legend:{display:false}}}
+});
+
+// Quarter-over-Quarter Change
+new Chart(document.getElementById('qoqChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Financial','Operational','Customer','People','Technology','Market','Compliance','Innovation'],
+        datasets: [{
+            label:'Change',
+            data:[+4,+4,+5,+2,+3,+3,+3,+5],
+            backgroundColor: function(ctx) { return ctx.raw >= 0 ? 'rgba(76,175,80,0.7)' : 'rgba(244,67,54,0.7)'; }
+        }]
+    },
+    options: {responsive:true, scales:{y:{ticks:{color:'#b0b8c4',callback:v=>(v>0?'+':'')+v},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{display:false}}}
+});
+
+// Dimension Breakdown
+const DIMS = [
+    {name:'Compliance',score:88,color:'#4caf50',detail:'Strong regulatory compliance, all audits passed'},
+    {name:'Customer',score:85,color:'#4caf50',detail:'NPS 42, CSAT 4.1/5, CLV:CAC ratio 3.5x'},
+    {name:'Financial',score:82,color:'#4caf50',detail:'Revenue growth 12.5%, profit margin 18.2%, 24-month runway'},
+    {name:'Technology',score:81,color:'#4caf50',detail:'System uptime 99.8%, tech debt decreasing, modern stack'},
+    {name:'Operational',score:76,color:'#ff9800',detail:'Efficiency improving but process bottlenecks in fulfillment'},
+    {name:'People',score:72,color:'#ff9800',detail:'Engagement at 78%, attrition 8.5% - retention efforts needed'},
+    {name:'Market',score:68,color:'#ff9800',detail:'Growing but below industry expansion rate, competitive pressure'},
+    {name:'Innovation',score:65,color:'#f44336',detail:'R&D pipeline thin, need to accelerate new product development'}
+];
+
+document.getElementById('dimensionBreakdown').innerHTML = DIMS.map(d => {
+    return `<div class="d-flex align-items-center gap-3 mb-3">
+        <div style="min-width:40px;height:40px;border-radius:8px;background:${d.color}20;color:${d.color};display:flex;align-items:center;justify-content:center;font-weight:700;">${d.score}</div>
+        <div class="flex-fill">
+            <div class="d-flex justify-content-between mb-1"><strong style="color:#e6edf3;">${d.name}</strong><span style="color:${d.color};font-weight:600;">${d.score}/100</span></div>
+            <div class="dimension-bar"><div class="dimension-fill" style="width:${d.score}%;background:${d.color};"></div></div>
+            <small style="color:#8b949e;">${d.detail}</small>
+        </div>
+    </div>`;
+}).join('');
+
+// Action Items
+const ACTIONS = [
+    {action:'Accelerate R&D investment to improve Innovation score',area:'Innovation',impact:'Target: 75+ by Q3',priority:'Critical'},
+    {action:'Launch retention program to reduce attrition below 7%',area:'People',impact:'Projected savings: $180K/year',priority:'High'},
+    {action:'Expand market presence in 2 adjacent verticals',area:'Market',impact:'Target: 15% market share growth',priority:'High'},
+    {action:'Automate fulfillment bottleneck processes',area:'Operations',impact:'+8 operational score points',priority:'Medium'},
+    {action:'Increase NPS target from 42 to 50',area:'Customer',impact:'Improved retention and referrals',priority:'Medium'}
+];
+
+document.getElementById('actionItems').innerHTML = ACTIONS.map(a => {
+    const color = a.priority==='Critical'?'#f44336':a.priority==='High'?'#ff9800':'#ffd700';
+    return `<div class="d-flex align-items-start gap-2 mb-3"><span class="badge" style="background:${color};min-width:55px;font-size:0.7rem;">${a.priority}</span><div><span style="color:#e6edf3;font-size:0.9rem;">${a.action}</span><br><small style="color:#8b949e;">${a.area}</small> <small style="color:#4caf50;">${a.impact}</small></div></div>`;
+}).join('');
+</script>
+{% endblock %}

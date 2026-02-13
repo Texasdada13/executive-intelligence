@@ -109,6 +109,30 @@ def create_app():
         metrics = ExecutiveMetricsRepository.get_latest(org_id)
         return render_template('organization.html', organization=org, goals=goals, metrics=metrics)
 
+    @app.route('/business-health')
+    def business_health():
+        return render_template('business_health.html')
+
+    @app.route('/strategic-planning')
+    def strategic_planning():
+        return render_template('strategic_planning.html')
+
+    @app.route('/board-reporting')
+    def board_reporting():
+        return render_template('board_reporting.html')
+
+    @app.route('/csuite-coordination')
+    def csuite_coordination():
+        return render_template('csuite_coordination.html')
+
+    @app.route('/growth-strategy')
+    def growth_strategy():
+        return render_template('growth_strategy.html')
+
+    @app.route('/enterprise-risk')
+    def enterprise_risk():
+        return render_template('enterprise_risk.html')
+
     @app.route('/chat')
     def chat_page():
         modes = {mode.value: desc for mode, desc in [

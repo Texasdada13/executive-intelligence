@@ -30,6 +30,14 @@
         .feature-icon { width: 60px; height: 60px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
         .footer { background: var(--card-bg); padding: 2rem 0; margin-top: 3rem; border-top: 1px solid rgba(255, 215, 0, 0.2); }
 
+        /* Card text contrast for dark theme */
+        .card h5, .card h4, .card h3 { color: #ffffff; font-weight: 600; }
+        .card .text-muted { color: #b0b8c4 !important; }
+        .card p:not(.text-muted) { color: #d8dee6; }
+        .card li { color: #d8dee6; }
+        .card ul.text-muted li { color: #b0b8c4; }
+        h2, h3, h4 { color: #ffffff; }
+
         /* Command Palette Styles */
         .command-palette-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 9999; display: none; align-items: flex-start; justify-content: center; padding-top: 15vh; }
         .command-palette-overlay.show { display: flex; }
@@ -167,6 +175,10 @@
         body.light-theme .card { border-color: rgba(255, 215, 0, 0.15); }
         body.light-theme .table { color: #333; }
         body.light-theme .footer { background: #fff; border-color: rgba(255, 215, 0, 0.15); }
+        body.light-theme .card h5, body.light-theme .card h4, body.light-theme .card h3 { color: #1f2937; }
+        body.light-theme .card p:not(.text-muted) { color: #374151; }
+        body.light-theme .card li { color: #374151; }
+        body.light-theme h2, body.light-theme h3, body.light-theme h4 { color: #1f2937; }
         body.light-theme .command-palette, body.light-theme .settings-modal { background: #fff; color: #333; }
         body.light-theme .command-input { color: #333; }
         body.light-theme .command-item:hover, body.light-theme .command-item.selected { background: rgba(255, 215, 0, 0.15); }
@@ -186,6 +198,17 @@
                     <li class="nav-item"><a class="nav-link" href="/executive-dashboard"><i class="bi bi-diagram-3 me-1"></i>C-Suite View</a></li>
                     <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="/chat"><i class="bi bi-chat-dots me-1"></i>AI CEO</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-tools me-1"></i>Tools</a>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" href="/business-health"><i class="bi bi-heart-pulse me-2"></i>Business Health</a></li>
+                            <li><a class="dropdown-item" href="/strategic-planning"><i class="bi bi-compass me-2"></i>Strategic Planning</a></li>
+                            <li><a class="dropdown-item" href="/board-reporting"><i class="bi bi-people me-2"></i>Board Reporting</a></li>
+                            <li><a class="dropdown-item" href="/csuite-coordination"><i class="bi bi-diagram-3 me-2"></i>C-Suite Coordination</a></li>
+                            <li><a class="dropdown-item" href="/growth-strategy"><i class="bi bi-graph-up-arrow me-2"></i>Growth Strategy</a></li>
+                            <li><a class="dropdown-item" href="/enterprise-risk"><i class="bi bi-shield-exclamation me-2"></i>Enterprise Risk</a></li>
+                        </ul>
+                    </li>
                 </ul>
                 <span class="navbar-text"><span class="badge bg-dark">Fractional CEO</span></span>
             </div>

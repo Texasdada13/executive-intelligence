@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Strategic Planning - Executive Intelligence{% endblock %}
+{% block extra_css %}
+<style>
+    .okr-card { padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-left: 4px solid transparent; }
+    .progress-ring { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="text-white"><i class="bi bi-compass me-2" style="color:var(--accent-color);"></i>Strategic Planning</h2>
+            <p style="color:#8b949e;">OKR framework, goal tracking, and strategic alignment across the organization</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value">12</div><small style="color:#8b949e;">Active OKRs</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">67%</div><small style="color:#8b949e;">On Track</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ff9800;">25%</div><small style="color:#8b949e;">At Risk</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#f44336;">8%</div><small style="color:#8b949e;">Behind</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#1e88e5;">73%</div><small style="color:#8b949e;">Avg Progress</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ffd700;">Q2</div><small style="color:#8b949e;">Current Period</small></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Strategic Goal Progress</h5></div>
+                <div class="card-body"><canvas id="goalChart" height="300"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white">OKR Details</h5></div>
+                <div class="card-body" id="okrList"></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Goal Status Distribution</h5></div>
+                <div class="card-body"><canvas id="statusChart" height="220"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Progress by Category</h5></div>
+                <div class="card-body"><canvas id="categoryChart" height="220"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Quarterly Progress Trend</h5></div>
+                <div class="card-body"><canvas id="progressTrend" height="200"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white"><i class="bi bi-flag me-2"></i>Strategic Focus Areas</h5></div>
+                <div class="card-body" id="focusAreas"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const OKRS = [
+    {title:'Achieve $5M ARR',category:'Revenue',owner:'CEO',progress:82,status:'on_track',krs:['Close 15 enterprise deals (12/15)','Increase ARPU to $2.5K ($2.3K)','Reduce churn to <3% (3.2%)']},
+    {title:'Launch Product V2',category:'Product',owner:'CTO',progress:68,status:'on_track',krs:['Ship 5 major features (4/5)','Achieve 99.9% uptime (99.8%)','Reduce load time <2s (2.1s)']},
+    {title:'Expand to 3 New Markets',category:'Growth',owner:'CMO',progress:45,status:'at_risk',krs:['Enter APAC market (In Progress)','Launch LATAM presence (Planning)','Establish EU partnerships (1/3)']},
+    {title:'Build World-Class Team',category:'People',owner:'CHRO',progress:72,status:'on_track',krs:['Hire 25 key roles (18/25)','Achieve 85% engagement (78%)','Launch leadership program (Done)']},
+    {title:'Achieve SOC2 Type II',category:'Compliance',owner:'CISO',progress:90,status:'on_track',krs:['Complete all control implementations (Done)','Pass external audit (Scheduled)','Document all procedures (95%)']},
+    {title:'Reduce CAC by 20%',category:'Efficiency',owner:'CMO',progress:55,status:'at_risk',krs:['Optimize paid channels (-12%)','Increase organic traffic +40% (+28%)','Improve conversion rate to 4% (3.8%)']},
+    {title:'Achieve Operational Excellence',category:'Operations',owner:'COO',progress:78,status:'on_track',krs:['Automate 80% of workflows (72%)','Reduce support tickets 30% (-22%)','Improve NPS to 50 (42)']},
+    {title:'Secure Series B Funding',category:'Finance',owner:'CFO',progress:35,status:'at_risk',krs:['Prepare data room (Done)','Engage 10 target VCs (4/10)','Term sheet by Q3 (In Progress)']},
+    {title:'Implement AI Strategy',category:'Innovation',owner:'CTO',progress:60,status:'on_track',krs:['Deploy 3 AI features (2/3)','Reduce manual processes 40% (25%)','Train team on AI tools (80%)']},
+    {title:'Customer Success Program',category:'Customer',owner:'CEO',progress:85,status:'on_track',krs:['Launch CS platform (Done)','Achieve 95% CSAT (91%)','Reduce time-to-value 50% (-38%)']},
+    {title:'Optimize Cash Flow',category:'Finance',owner:'CFO',progress:88,status:'on_track',krs:['Extend runway to 24 months (Done)','Reduce burn rate 15% (-12%)','Improve collections to <30 days (32)']},
+    {title:'Build Partner Ecosystem',category:'Growth',owner:'CEO',progress:40,status:'behind',krs:['Sign 5 strategic partners (2/5)','Launch partner portal (In Dev)','Generate $500K partner revenue ($120K)']}
+];
+
+// Strategic Goal Progress
+new Chart(document.getElementById('goalChart'), {
+    type: 'bar',
+    data: {
+        labels: OKRS.map(o => o.title.length > 25 ? o.title.substring(0,25)+'...' : o.title),
+        datasets: [{
+            label:'Progress %',
+            data: OKRS.map(o => o.progress),
+            backgroundColor: OKRS.map(o => o.status==='on_track'?'rgba(76,175,80,0.7)':o.status==='at_risk'?'rgba(255,152,0,0.7)':'rgba(244,67,54,0.7)')
+        }]
+    },
+    options: {responsive:true, indexAxis:'y', scales:{x:{min:0,max:100,ticks:{color:'#b0b8c4',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#b0b8c4',font:{size:10}},grid:{color:'rgba(255,255,255,0.1)'}}}, plugins:{legend:{display:false}}}
+});
+
+// Status Distribution
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['On Track','At Risk','Behind'],
+        datasets: [{data:[8,3,1],backgroundColor:['#4caf50','#ff9800','#f44336']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Progress by Category
+new Chart(document.getElementById('categoryChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Finance','Customer','Operations','Product','People','Efficiency','Growth','Innovation'],
+        datasets: [{
+            label:'Avg Progress',
+            data:[62,85,78,68,72,55,43,60],
+            backgroundColor:['#ffd700','#4caf50','#1e88e5','#9c27b0','#ff9800','#e91e63','#f44336','#607d8b']
+        }]
+    },
+    options: {responsive:true, scales:{y:{min:0,max:100,ticks:{color:'#b0b8c4',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{display:false}}}
+});
+
+// Progress Trend
+new Chart(document.getElementById('progressTrend'), {
+    type: 'line',
+    data: {
+        labels: ['Week 1','Week 4','Week 8','Week 12','Week 16','Week 20'],
+        datasets: [
+            {label:'Actual',data:[15,28,42,55,65,73],borderColor:'#ffd700',backgroundColor:'rgba(255,215,0,0.1)',fill:true,tension:0.3},
+            {label:'Target',data:[17,33,50,67,83,100],borderColor:'#8b949e',borderDash:[5,5],tension:0.3,fill:false}
+        ]
+    },
+    options: {responsive:true, scales:{y:{min:0,max:100,ticks:{color:'#b0b8c4',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// OKR List
+document.getElementById('okrList').innerHTML = OKRS.map(o => {
+    const statusColor = o.status==='on_track'?'#4caf50':o.status==='at_risk'?'#ff9800':'#f44336';
+    const statusLabel = o.status==='on_track'?'On Track':o.status==='at_risk'?'At Risk':'Behind';
+    return `<div class="okr-card" style="border-left-color:${statusColor};">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div><strong style="color:#e6edf3;">${o.title}</strong><br><small style="color:#8b949e;">${o.category} &middot; Owner: ${o.owner}</small></div>
+            <div class="text-end">
+                <div class="progress-ring" style="background:${statusColor}20;color:${statusColor};">${o.progress}%</div>
+                <small style="color:${statusColor};font-weight:600;">${statusLabel}</small>
+            </div>
+        </div>
+        <div style="margin-left:8px;">${o.krs.map(kr => `<div style="color:#c9d1d9;font-size:0.85rem;margin-bottom:2px;"><i class="bi bi-dot"></i>${kr}</div>`).join('')}</div>
+    </div>`;
+}).join('');
+
+// Focus Areas
+const FOCUS = [
+    {area:'Series B Preparation',urgency:'Q2-Q3 Critical Path',action:'Accelerate VC outreach, finalize metrics deck',priority:'Critical'},
+    {area:'Market Expansion',urgency:'Behind schedule by 4 weeks',action:'Prioritize APAC launch, defer LATAM to Q4',priority:'High'},
+    {area:'Partner Ecosystem',urgency:'Only 40% progress at mid-quarter',action:'Assign dedicated BD resource, revise partner strategy',priority:'High'},
+    {area:'CAC Optimization',urgency:'Trending below target',action:'Shift budget to higher-ROI channels, A/B test campaigns',priority:'Medium'}
+];
+
+document.getElementById('focusAreas').innerHTML = FOCUS.map(f => {
+    const color = f.priority==='Critical'?'#f44336':f.priority==='High'?'#ff9800':'#ffd700';
+    return `<div class="d-flex align-items-start gap-2 mb-3"><span class="badge" style="background:${color};min-width:55px;font-size:0.7rem;">${f.priority}</span><div><strong style="color:#e6edf3;">${f.area}</strong> <small style="color:#f44336;">(${f.urgency})</small><br><small style="color:#c9d1d9;">${f.action}</small></div></div>`;
+}).join('');
+</script>
+{% endblock %}

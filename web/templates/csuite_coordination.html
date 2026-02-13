@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}C-Suite Coordination - Executive Intelligence{% endblock %}
+{% block extra_css %}
+<style>
+    .csuite-card { padding: 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-left: 4px solid transparent; transition: transform 0.15s; }
+    .csuite-card:hover { transform: translateX(4px); }
+    .initiative-item { padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.03); margin-bottom: 6px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="text-white"><i class="bi bi-diagram-3 me-2" style="color:var(--accent-color);"></i>C-Suite Coordination</h2>
+            <p style="color:#8b949e;">Unified view across CFO, CTO, COO, CHRO, CMO, and CISO functions</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value">7</div><small style="color:#8b949e;">C-Suite Roles</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">77</div><small style="color:#8b949e;">Avg Score</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ffd700;">18</div><small style="color:#8b949e;">Active Initiatives</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">72%</div><small style="color:#8b949e;">Alignment Score</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#1e88e5;">5</div><small style="color:#8b949e;">Cross-Functional</small></div></div>
+        <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ff9800;">3</div><small style="color:#8b949e;">Escalations</small></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">C-Suite Performance Overview</h5></div>
+                <div class="card-body"><canvas id="csuiteRadar" height="320"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Function Details</h5></div>
+                <div class="card-body" id="functionDetails"></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white">Cross-Functional Initiatives</h5></div>
+                <div class="card-body" id="initiatives"></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Score Comparison</h5></div>
+                <div class="card-body"><canvas id="scoreChart" height="260"></canvas></div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0 text-white">Alignment Matrix</h5></div>
+                <div class="card-body"><canvas id="alignmentChart" height="240"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0 text-white"><i class="bi bi-exclamation-circle me-2"></i>Escalations & Blockers</h5></div>
+                <div class="card-body" id="escalations"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const CSUITE = [
+    {role:'CEO',name:'Executive Strategy',score:85,color:'#ffd700',initiatives:3,status:'Strong',
+     kpis:['Overall Health: B+','Strategic Goals: 67% on track','Revenue: $4.1M ARR'],
+     focus:'Series B preparation and market expansion'},
+    {role:'CFO',name:'Cash Flow Intelligence',score:78,color:'#4caf50',initiatives:2,status:'Good',
+     kpis:['Gross Margin: 72%','Cash Runway: 24 months','Burn Rate: $125K/mo'],
+     focus:'Optimizing burn rate and preparing financial models for fundraising'},
+    {role:'CTO',name:'App Rationalization Pro',score:81,color:'#1e88e5',initiatives:3,status:'Strong',
+     kpis:['System Uptime: 99.8%','Tech Debt Ratio: 12%','Deploy Frequency: Daily'],
+     focus:'Product V2 launch and AI feature integration'},
+    {role:'COO',name:'Operations Intelligence',score:76,color:'#ff9800',initiatives:3,status:'Good',
+     kpis:['Process Efficiency: 78%','Automation Rate: 72%','Support Tickets: -22%'],
+     focus:'Process automation and operational excellence program'},
+    {role:'CMO',name:'Marketing Intelligence',score:72,color:'#e91e63',initiatives:2,status:'Watch',
+     kpis:['Marketing ROI: 318%','CAC: $42','Pipeline: $1.2M'],
+     focus:'CAC optimization and market expansion campaigns'},
+    {role:'CHRO',name:'Talent Intelligence',score:69,color:'#9c27b0',initiatives:3,status:'Watch',
+     kpis:['Engagement: 78%','Attrition: 8.5%','Open Roles: 7'],
+     focus:'Retention program launch and leadership development'},
+    {role:'CISO',name:'Security Intelligence',score:74,color:'#607d8b',initiatives:2,status:'Good',
+     kpis:['Security Score: 82/100','Incidents: 0 critical','SOC2: In Progress'],
+     focus:'SOC2 Type II certification and security automation'}
+];
+
+// C-Suite Radar
+new Chart(document.getElementById('csuiteRadar'), {
+    type: 'radar',
+    data: {
+        labels: CSUITE.map(c => c.role),
+        datasets: [
+            {label:'Current Score',data:CSUITE.map(c => c.score),backgroundColor:'rgba(255,215,0,0.2)',borderColor:'#ffd700',pointBackgroundColor:'#ffd700'},
+            {label:'Target (80+)',data:Array(7).fill(80),backgroundColor:'rgba(76,175,80,0.1)',borderColor:'#4caf50',borderDash:[5,5],pointBackgroundColor:'#4caf50'}
+        ]
+    },
+    options: {responsive:true, scales:{r:{beginAtZero:true,max:100,grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'#b0b8c4',font:{size:12}},ticks:{display:false}}}, plugins:{legend:{position:'bottom',labels:{color:'#b0b8c4'}}}}
+});
+
+// Score Comparison
+new Chart(document.getElementById('scoreChart'), {
+    type: 'bar',
+    data: {
+        labels: CSUITE.map(c => c.role),
+        datasets: [{
+            label:'Score',
+            data: CSUITE.map(c => c.score),
+            backgroundColor: CSUITE.map(c => c.score >= 80 ? '#4caf50' : c.score >= 70 ? '#ff9800' : '#f44336')
+        }]
+    },
+    options: {responsive:true, indexAxis:'y', scales:{x:{min:0,max:100,ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#b0b8c4'},grid:{color:'rgba(255,255,255,0.1)'}}}, plugins:{legend:{display:false}}}
+});
+
+// Alignment Matrix (bubble chart showing dependencies)
+new Chart(document.getElementById('alignmentChart'), {
+    type: 'bar',
+    data: {
+        labels: ['CEO-CFO','CEO-CTO','CMO-CTO','COO-CTO','CHRO-COO','CFO-CMO','CISO-CTO'],
+        datasets: [{
+            label:'Alignment %',
+            data:[88,82,68,75,72,65,78],
+            backgroundColor:['rgba(255,215,0,0.6)','rgba(76,175,80,0.6)','rgba(255,152,0,0.6)','rgba(30,136,229,0.6)','rgba(255,152,0,0.6)','rgba(244,67,54,0.6)','rgba(30,136,229,0.6)']
+        }]
+    },
+    options: {responsive:true, indexAxis:'y', scales:{x:{min:0,max:100,ticks:{color:'#b0b8c4',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#b0b8c4',font:{size:10}},grid:{color:'rgba(255,255,255,0.1)'}}}, plugins:{legend:{display:false}}}
+});
+
+// Function Details
+document.getElementById('functionDetails').innerHTML = CSUITE.map(c => {
+    const statusColor = c.status==='Strong'?'#4caf50':c.status==='Good'?'#ff9800':'#f44336';
+    return `<div class="csuite-card" style="border-left-color:${c.color};">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div><strong style="color:${c.color};font-size:1.1rem;">${c.role}</strong> <span style="color:#8b949e;">- ${c.name}</span></div>
+            <div class="text-end"><span style="color:${c.color};font-size:1.3rem;font-weight:700;">${c.score}</span><br><span class="badge" style="background:${statusColor};">${c.status}</span></div>
+        </div>
+        <div class="mb-2">${c.kpis.map(k => `<small style="color:#c9d1d9;display:inline-block;margin-right:12px;"><i class="bi bi-check-circle" style="color:#4caf50;"></i> ${k}</small>`).join('')}</div>
+        <small style="color:#ffd700;"><i class="bi bi-crosshair me-1"></i>Focus: ${c.focus}</small>
+    </div>`;
+}).join('');
+
+// Cross-Functional Initiatives
+const INITIATIVES = [
+    {name:'AI-Powered Product Suite',teams:['CTO','CMO','COO'],progress:62,status:'In Progress',impact:'$800K projected revenue'},
+    {name:'SOC2 + Enterprise Sales Motion',teams:['CISO','CFO','CMO'],progress:78,status:'On Track',impact:'Unlock enterprise pipeline'},
+    {name:'Employee Experience 2.0',teams:['CHRO','CTO','COO'],progress:45,status:'In Progress',impact:'Target: 85% engagement'},
+    {name:'Data-Driven GTM Strategy',teams:['CMO','CFO','CTO'],progress:55,status:'In Progress',impact:'20% CAC reduction target'},
+    {name:'Operational Automation Program',teams:['COO','CTO','CFO'],progress:72,status:'On Track',impact:'$200K annual savings'}
+];
+
+document.getElementById('initiatives').innerHTML = INITIATIVES.map(i => {
+    const statusColor = i.status==='On Track'?'#4caf50':'#ff9800';
+    return `<div class="initiative-item">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong style="color:#e6edf3;">${i.name}</strong>
+            <span class="badge" style="background:${statusColor};">${i.progress}%</span>
+        </div>
+        <div class="d-flex gap-1 mb-1">${i.teams.map(t => `<span class="badge bg-dark">${t}</span>`).join('')}</div>
+        <small style="color:#4caf50;">${i.impact}</small>
+    </div>`;
+}).join('');
+
+// Escalations
+const ESCALATIONS = [
+    {issue:'CFO-CMO budget conflict on Q3 marketing spend increase',severity:'Medium',owner:'CEO',resolution:'Schedule alignment meeting by Feb 20'},
+    {issue:'CTO-COO resource contention for automation engineer',severity:'High',owner:'CEO',resolution:'Approve contractor budget for 3-month overlap'},
+    {issue:'CHRO flagging burnout risk in engineering team',severity:'High',owner:'CTO/CHRO',resolution:'Implement sprint load reduction, add 2 hires'}
+];
+
+document.getElementById('escalations').innerHTML = ESCALATIONS.map(e => {
+    const color = e.severity==='High'?'#f44336':'#ff9800';
+    return `<div class="d-flex align-items-start gap-2 mb-3"><span class="badge" style="background:${color};min-width:50px;font-size:0.7rem;">${e.severity}</span><div><span style="color:#e6edf3;font-size:0.9rem;">${e.issue}</span><br><small style="color:#8b949e;">Owner: ${e.owner}</small><br><small style="color:#4caf50;">${e.resolution}</small></div></div>`;
+}).join('');
+</script>
+{% endblock %}
