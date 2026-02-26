@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Strategic Planning - Executive Intelligence{% endblock %}
+{% block page_title %}Strategic Planning{% endblock %}
 {% block extra_css %}
 <style>
     .okr-card { padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-left: 4px solid transparent; }
@@ -7,14 +8,6 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
-            <h2 class="text-white"><i class="bi bi-compass me-2" style="color:var(--accent-color);"></i>Strategic Planning</h2>
-            <p style="color:#8b949e;">OKR framework, goal tracking, and strategic alignment across the organization</p>
-        </div>
-    </div>
-
     <div class="row g-3 mb-4">
         <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value">12</div><small style="color:#8b949e;">Active OKRs</small></div></div>
         <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">67%</div><small style="color:#8b949e;">On Track</small></div></div>
@@ -54,7 +47,6 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 {% block extra_js %}
 <script>

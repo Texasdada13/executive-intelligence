@@ -20,6 +20,8 @@ else:
 
 from config.settings import get_config
 from src.database.models import db
+from patriot_ui import init_ui
+from patriot_ui.config import NavItem, NavSection
 from src.database.repository import OrganizationRepository, StrategicGoalRepository, ExecutiveMetricsRepository, BoardReportRepository, ChatRepository
 from src.ai_core.chat_engine import ChatEngine, ConversationMode
 from src.ai_core.file_analyzer import create_file_analyzer
@@ -59,6 +61,31 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+    # Initialize Patriot UI Kit
+    init_ui(app,
+        product_name="Executive Intelligence",
+        product_icon="bi-briefcase",
+        show_org_selector=True,
+        nav_sections=[
+            NavSection("Overview", [
+                NavItem("Dashboard", "bi-speedometer2", "/dashboard"),
+                NavItem("C-Suite View", "bi-columns-gap", "/executive-dashboard"),
+                NavItem("AI CEO", "bi-chat-dots", "/chat"),
+            ]),
+            NavSection("Tools", [
+                NavItem("Business Health", "bi-heart-pulse", "/business-health"),
+                NavItem("Strategic Planning", "bi-compass", "/strategic-planning"),
+                NavItem("Board Reporting", "bi-file-earmark-bar-graph", "/board-reporting"),
+                NavItem("C-Suite Coordination", "bi-people", "/csuite-coordination"),
+                NavItem("Growth Strategy", "bi-graph-up-arrow", "/growth-strategy"),
+                NavItem("Enterprise Risk", "bi-shield-exclamation", "/enterprise-risk"),
+            ]),
+            NavSection("Reports", [
+                NavItem("Reports", "bi-journal-text", "/reports"),
+            ]),
+        ]
+    )
 
     # Initialize shared authentication (if available)
     if CSUITE_AUTH_AVAILABLE:

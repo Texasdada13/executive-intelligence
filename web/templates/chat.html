@@ -1,40 +1,40 @@
 {% extends "base.html" %}
 {% block title %}AI CEO Consultant{% endblock %}
+{% block page_title %}AI CEO Consultant{% endblock %}
 {% block extra_css %}
 <style>
     .chat-container { height: calc(100vh - 200px); display: flex; flex-direction: column; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 12px; }
-    .message { max-width: 85%; margin-bottom: 1rem; padding: 1rem; border-radius: 12px; }
-    .message.user { background: var(--primary-gradient); margin-left: auto; color: #000; }
-    .message.assistant { background: var(--card-bg); border: 1px solid rgba(255, 215, 0, 0.2); color: #e8e8e8; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--pt-radius-lg); }
+    .message { max-width: 85%; margin-bottom: 1rem; padding: 1rem; border-radius: var(--pt-radius-lg); }
+    .message.user { background: var(--pt-gradient-gold); margin-left: auto; color: var(--pt-text-inverse); }
+    .message.assistant { background: var(--pt-bg-surface); border: 1px solid var(--pt-border-accent); color: var(--pt-text-primary); }
     .message-content { white-space: pre-wrap; word-wrap: break-word; }
-    .chat-input-area { padding: 1rem; background: var(--card-bg); border-radius: 12px; margin-top: 1rem; }
-    .mode-selector { background: var(--card-bg); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
-    .mode-btn { background: transparent; border: 1px solid rgba(255, 215, 0, 0.3); color: #e8e8e8; padding: 0.5rem 1rem; border-radius: 20px; margin: 0.25rem; transition: all 0.2s; }
-    .mode-btn:hover, .mode-btn.active { background: var(--primary-gradient); border-color: transparent; color: #000; }
+    .chat-input-area { padding: 1rem; background: var(--pt-bg-surface); border-radius: var(--pt-radius-lg); margin-top: 1rem; }
+    .mode-selector { background: var(--pt-bg-surface); border-radius: var(--pt-radius-lg); padding: 1rem; margin-bottom: 1rem; }
+    .mode-btn { background: transparent; border: 1px solid var(--pt-border-accent); color: var(--pt-text-primary); padding: 0.5rem 1rem; border-radius: var(--pt-radius-full); margin: 0.25rem; transition: all var(--pt-transition-normal); }
+    .mode-btn:hover, .mode-btn.active { background: var(--pt-gradient-gold); border-color: transparent; color: var(--pt-text-inverse); }
     .suggested-prompts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-    .prompt-btn { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #e8e8e8; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; position: relative; }
-    .prompt-btn:hover { background: rgba(255, 215, 0, 0.2); color: #fff; }
-    .prompt-btn.urgent { border-color: #dc3545; background: rgba(220, 53, 69, 0.1); }
-    .prompt-btn.opportunity { border-color: #28a745; background: rgba(40, 167, 69, 0.1); }
-    .prompt-btn.follow-up { border-color: #17a2b8; background: rgba(23, 162, 184, 0.1); }
-    .prompt-btn .dismiss-btn { display: none; position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: #dc3545; color: white; font-size: 10px; line-height: 16px; text-align: center; cursor: pointer; }
+    .prompt-btn { background: rgba(201, 168, 76, 0.1); border: 1px solid var(--pt-border-accent); color: var(--pt-text-primary); padding: 0.5rem 1rem; border-radius: var(--pt-radius-full); font-size: 0.85rem; position: relative; }
+    .prompt-btn:hover { background: rgba(201, 168, 76, 0.2); color: var(--pt-text-primary); }
+    .prompt-btn.urgent { border-color: var(--pt-status-danger); background: var(--pt-status-danger-bg); }
+    .prompt-btn.opportunity { border-color: var(--pt-status-success); background: var(--pt-status-success-bg); }
+    .prompt-btn.follow-up { border-color: var(--pt-status-info); background: var(--pt-status-info-bg); }
+    .prompt-btn .dismiss-btn { display: none; position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: var(--pt-status-danger); color: white; font-size: 10px; line-height: 16px; text-align: center; cursor: pointer; }
     .prompt-btn:hover .dismiss-btn { display: block; }
-    .typing-indicator { display: none; padding: 1rem; color: #aaa; }
+    .typing-indicator { display: none; padding: 1rem; color: var(--pt-text-muted); }
     .typing-indicator.show { display: block; }
-    .file-upload-area { border: 2px dashed rgba(255, 215, 0, 0.3); border-radius: 8px; padding: 1rem; text-align: center; margin-bottom: 1rem; display: none; cursor: pointer; }
+    .file-upload-area { border: 2px dashed var(--pt-border-accent); border-radius: var(--pt-radius-md); padding: 1rem; text-align: center; margin-bottom: 1rem; display: none; cursor: pointer; }
     .file-upload-area.show { display: block; }
-    .file-upload-area:hover { border-color: rgba(255, 215, 0, 0.6); background: rgba(255, 215, 0, 0.05); }
-    .file-upload-area.dragover { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+    .file-upload-area:hover { border-color: var(--pt-interactive-accent); background: rgba(201, 168, 76, 0.05); }
+    .file-upload-area.dragover { border-color: var(--pt-interactive-accent); background: rgba(201, 168, 76, 0.1); }
     .uploaded-files { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .uploaded-file { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
-    .uploaded-file .remove-file { cursor: pointer; color: #dc3545; }
-    .context-panel { background: var(--card-bg); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
-    .topic-tag { display: inline-block; background: rgba(23, 162, 184, 0.2); border-radius: 10px; padding: 0.15rem 0.5rem; font-size: 0.75rem; margin: 0.15rem; }
+    .uploaded-file { background: rgba(201, 168, 76, 0.1); border: 1px solid var(--pt-border-accent); padding: 0.25rem 0.75rem; border-radius: var(--pt-radius-full); font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+    .uploaded-file .remove-file { cursor: pointer; color: var(--pt-status-danger); }
+    .context-panel { background: var(--pt-bg-surface); border-radius: var(--pt-radius-lg); padding: 1rem; margin-bottom: 1rem; }
+    .topic-tag { display: inline-block; background: var(--pt-status-info-bg); border-radius: 10px; padding: 0.15rem 0.5rem; font-size: 0.75rem; margin: 0.15rem; color: var(--pt-text-secondary); }
 </style>
 {% endblock %}
 {% block content %}
-<div class="container py-4">
     <div class="row">
         <div class="col-lg-3">
             <div class="mode-selector">
@@ -58,7 +58,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>AI CEO Consultant<span id="currentMode" class="badge bg-dark ms-2">General</span></h5>
-                    <button class="btn btn-outline-warning btn-sm" id="toggleUpload"><i class="bi bi-upload"></i> Upload Data</button>
+                    <button class="pt-btn pt-btn-outline pt-btn-sm" id="toggleUpload"><i class="bi bi-upload"></i> Upload Data</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="chat-container">
@@ -92,8 +92,8 @@ How can I help you lead your organization today?</div></div>
                         </div>
                         <div class="chat-input-area">
                             <form id="chatForm" class="d-flex gap-2">
-                                <input type="text" id="messageInput" class="form-control bg-dark text-light border-secondary" placeholder="Ask your strategic question..." autocomplete="off">
-                                <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                                <input type="text" id="messageInput" class="pt-input" style="flex:1;" placeholder="Ask your strategic question..." autocomplete="off">
+                                <button type="submit" class="pt-btn pt-btn-primary"><i class="bi bi-send"></i></button>
                             </form>
                         </div>
                     </div>
@@ -101,7 +101,6 @@ How can I help you lead your organization today?</div></div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 {% block extra_js %}
 <script>

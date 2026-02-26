@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+{% block page_title %}Executive Dashboard{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -48,22 +49,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-award me-2"></i>Executive Dashboard</h2>
-        <div class="quick-actions">
-            <button class="btn btn-outline-light btn-sm" onclick="loadDemoData()"><i class="bi bi-magic me-1"></i>Load Demo Data</button>
-            <button class="btn btn-outline-light btn-sm" onclick="refreshDashboard()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
-            <div class="btn-group">
-                <button class="btn btn-outline-success btn-sm" onclick="exportCSV()" id="exportCsvBtn" disabled>
-                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
-                </button>
-                <button class="btn btn-outline-info btn-sm" onclick="exportHTML()" id="exportHtmlBtn" disabled>
-                    <i class="bi bi-file-earmark-richtext me-1"></i>Export Report
-                </button>
-            </div>
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addOrgModal"><i class="bi bi-plus-lg me-1"></i>Add Organization</button>
-        </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <button class="pt-btn pt-btn-outline pt-btn-sm" onclick="loadDemoData()"><i class="bi bi-magic me-1"></i>Load Demo</button>
+        <button class="pt-btn pt-btn-outline pt-btn-sm" onclick="refreshDashboard()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+        <button class="pt-btn pt-btn-outline pt-btn-sm" onclick="exportCSV()" id="exportCsvBtn" disabled><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</button>
+        <button class="pt-btn pt-btn-outline pt-btn-sm" onclick="exportHTML()" id="exportHtmlBtn" disabled><i class="bi bi-file-earmark-richtext me-1"></i>Report</button>
+        <button class="pt-btn pt-btn-primary pt-btn-sm" data-bs-toggle="modal" data-bs-target="#addOrgModal"><i class="bi bi-plus-lg me-1"></i>Add Org</button>
     </div>
 
     <div class="org-selector">
@@ -221,7 +212,6 @@
             {% endif %}
         </div>
     </div>
-</div>
 
 <div class="modal fade" id="addOrgModal" tabindex="-1">
     <div class="modal-dialog">

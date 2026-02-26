@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}C-Suite Coordination - Executive Intelligence{% endblock %}
+{% block page_title %}C-Suite Coordination{% endblock %}
 {% block extra_css %}
 <style>
     .csuite-card { padding: 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-left: 4px solid transparent; transition: transform 0.15s; }
@@ -8,14 +9,6 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
-            <h2 class="text-white"><i class="bi bi-diagram-3 me-2" style="color:var(--accent-color);"></i>C-Suite Coordination</h2>
-            <p style="color:#8b949e;">Unified view across CFO, CTO, COO, CHRO, CMO, and CISO functions</p>
-        </div>
-    </div>
-
     <div class="row g-3 mb-4">
         <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value">7</div><small style="color:#8b949e;">C-Suite Roles</small></div></div>
         <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">77</div><small style="color:#8b949e;">Avg Score</small></div></div>
@@ -55,7 +48,6 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 {% block extra_js %}
 <script>

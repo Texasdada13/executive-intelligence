@@ -1,20 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ organization.name }}{% endblock %}
+{% block page_title %}{{ organization.name }}{% endblock %}
 {% block content %}
-<div class="container py-4">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item active">{{ organization.name }}</li>
-        </ol>
-    </nav>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2>{{ organization.name }}</h2>
-            <p class="text-muted mb-0">{{ organization.industry or 'Industry not specified' }} | {{ organization.stage or 'Stage not specified' }}</p>
-        </div>
-        <a href="/chat?org={{ organization.id }}" class="btn btn-primary"><i class="bi bi-chat-dots me-1"></i>Ask AI CEO</a>
-    </div>
     <div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="stat-card">
@@ -71,5 +58,4 @@
             {% endif %}
         </div>
     </div>
-</div>
 {% endblock %}

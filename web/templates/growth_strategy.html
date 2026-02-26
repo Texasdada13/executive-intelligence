@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Growth Strategy - Executive Intelligence{% endblock %}
+{% block page_title %}Growth Strategy{% endblock %}
 {% block extra_css %}
 <style>
     .market-card { padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.03); margin-bottom: 8px; }
@@ -7,14 +8,6 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
-            <h2 class="text-white"><i class="bi bi-graph-up-arrow me-2" style="color:var(--accent-color);"></i>Growth Strategy</h2>
-            <p style="color:#8b949e;">Market expansion, M&A opportunities, and sustainable scaling strategies</p>
-        </div>
-    </div>
-
     <div class="row g-3 mb-4">
         <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#4caf50;">18%</div><small style="color:#8b949e;">QoQ Growth</small></div></div>
         <div class="col-md-2"><div class="stat-card text-center"><div class="stat-value" style="color:#ffd700;">$4.1M</div><small style="color:#8b949e;">Current ARR</small></div></div>
@@ -58,7 +51,6 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 {% block extra_js %}
 <script>

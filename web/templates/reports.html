@@ -1,25 +1,44 @@
 {% extends "base.html" %}
 
 {% block title %}Aggregated Reports - Executive Intelligence{% endblock %}
+{% block page_title %}Aggregated Reports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-generator { background: var(--pt-bg-surface); border-radius: var(--pt-radius-lg); padding: 1.5rem; border: 1px solid var(--pt-border-default); margin-bottom: 2rem; }
+    .report-generator label { color: var(--pt-text-secondary); font-size: var(--pt-text-sm); font-weight: var(--pt-font-medium); margin-bottom: 0.25rem; display: block; }
+    .summary-card { background: var(--pt-bg-surface); border-radius: var(--pt-radius-lg); padding: 1.25rem; border: 1px solid var(--pt-border-default); }
+    .summary-card .label { font-size: var(--pt-text-sm); color: var(--pt-text-muted); }
+    .summary-card .value { font-size: var(--pt-text-2xl); font-weight: var(--pt-font-bold); color: var(--pt-text-primary); }
+    .summary-card.highlight { background: var(--pt-gradient-primary); border: none; }
+    .summary-card.highlight .label { color: rgba(255,255,255,0.8); }
+    .summary-card.highlight .value { color: #fff; }
+    .report-section { background: var(--pt-bg-surface); border-radius: var(--pt-radius-lg); padding: 1.5rem; border: 1px solid var(--pt-border-default); margin-bottom: 1rem; }
+    .report-section h3 { color: var(--pt-text-primary); font-size: var(--pt-text-lg); margin-bottom: 0.75rem; }
+    .report-section p { color: var(--pt-text-secondary); }
+    .finding-item { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .finding-item i { color: var(--pt-interactive-primary); margin-top: 0.15rem; }
+    .finding-item span { color: var(--pt-text-secondary); }
+    .risk-item { padding: 0.75rem; border-radius: var(--pt-radius-md); margin-bottom: 0.5rem; border-left: 3px solid; }
+    .risk-item.critical { background: var(--pt-status-danger-bg); border-color: var(--pt-status-danger); }
+    .risk-item.high { background: var(--pt-status-warning-bg); border-color: var(--pt-status-warning); }
+    .risk-item.medium { background: var(--pt-status-info-bg); border-color: var(--pt-status-info); }
+    .dept-card { border: 1px solid var(--pt-border-default); border-radius: var(--pt-radius-md); padding: 1rem; }
+    .dept-card h4 { color: var(--pt-text-primary); font-size: var(--pt-text-base); font-weight: var(--pt-font-semibold); }
+    .dept-card .score { font-size: var(--pt-text-2xl); font-weight: var(--pt-font-bold); color: var(--pt-interactive-primary); }
+    .metric-tag { display: inline-block; background: var(--pt-bg-surface-hover); padding: 0.25rem 0.75rem; border-radius: var(--pt-radius-md); font-size: var(--pt-text-sm); color: var(--pt-text-secondary); margin: 0.15rem; }
+    .loading-spinner { text-align: center; padding: 3rem; color: var(--pt-text-muted); display: none; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Aggregated Reports</h1>
-            <p class="text-gray-600 mt-1">Generate comprehensive reports across all C-Suite products</p>
-        </div>
-    </div>
-
-    <!-- Report Generator Card -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8">
-        <h2 class="text-lg font-semibold mb-4">Generate New Report</h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
-                <select id="reportType" class="w-full border rounded-lg px-3 py-2">
+    <!-- Report Generator -->
+    <div class="report-generator">
+        <h5 class="mb-3" style="color: var(--pt-text-primary);">Generate New Report</h5>
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <label>Report Type</label>
+                <select id="reportType" class="pt-select w-100">
                     <option value="executive_summary">Executive Summary</option>
                     <option value="board_presentation">Board Presentation</option>
                     <option value="quarterly_review">Quarterly Review</option>
@@ -27,114 +46,94 @@
                     <option value="risk_assessment">Risk Assessment</option>
                 </select>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Reporting Period</label>
-                <input type="text" id="reportingPeriod" placeholder="e.g., Q1 2026" value="February 2026" class="w-full border rounded-lg px-3 py-2">
+            <div class="col-md-3">
+                <label>Reporting Period</label>
+                <input type="text" id="reportingPeriod" class="pt-input w-100" placeholder="e.g., Q1 2026" value="February 2026">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
-                <input type="text" id="organization" placeholder="Organization name" value="Acme Corporation" class="w-full border rounded-lg px-3 py-2">
+            <div class="col-md-3">
+                <label>Organization</label>
+                <input type="text" id="organization" class="pt-input w-100" placeholder="Organization name" value="Acme Corporation">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Format</label>
-                <select id="outputFormat" class="w-full border rounded-lg px-3 py-2">
+            <div class="col-md-3">
+                <label>Format</label>
+                <select id="outputFormat" class="pt-select w-100">
                     <option value="json">Interactive (JSON)</option>
                     <option value="html">HTML Document</option>
                     <option value="markdown">Markdown</option>
                 </select>
             </div>
         </div>
-
-        <div class="flex gap-3">
-            <button onclick="generateReport()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Generate Report
-            </button>
-            <button onclick="downloadReport()" id="downloadBtn" disabled class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                Download
-            </button>
-        </div>
-    </div>
-
-    <!-- Report Preview -->
-    <div id="reportPreview" class="hidden">
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-sm p-5 text-white">
-                <div class="text-sm opacity-80">Health Score</div>
-                <div class="text-3xl font-bold" id="healthScore">-</div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div class="text-sm text-gray-500">Grade</div>
-                <div class="text-3xl font-bold text-blue-600" id="grade">-</div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div class="text-sm text-gray-500">Departments</div>
-                <div class="text-3xl font-bold text-green-600" id="deptCount">-</div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <div class="text-sm text-gray-500">Data Coverage</div>
-                <div class="text-3xl font-bold text-purple-600" id="coverage">-</div>
-            </div>
-        </div>
-
-        <!-- Executive Summary -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
-            <h3 class="text-lg font-semibold mb-3">Executive Summary</h3>
-            <p id="execSummary" class="text-gray-700 whitespace-pre-line"></p>
-        </div>
-
-        <!-- Department Performance -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
-            <h3 class="text-lg font-semibold mb-4">Department Performance</h3>
-            <div id="deptGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </div>
-
-        <!-- Key Findings -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-lg font-semibold mb-3">Key Findings</h3>
-                <ul id="keyFindings" class="space-y-2"></ul>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-lg font-semibold mb-3">Strategic Recommendations</h3>
-                <ul id="recommendations" class="space-y-2"></ul>
-            </div>
-        </div>
-
-        <!-- Report Sections -->
-        <div id="reportSections" class="space-y-4 mb-6"></div>
-
-        <!-- Risk Items -->
-        <div id="riskSection" class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hidden">
-            <h3 class="text-lg font-semibold mb-4">Risk Items</h3>
-            <div id="riskItems" class="space-y-3"></div>
+        <div class="d-flex gap-2">
+            <button onclick="generateReport()" class="pt-btn pt-btn-primary"><i class="bi bi-file-earmark-bar-graph me-2"></i>Generate Report</button>
+            <button onclick="downloadReport()" id="downloadBtn" disabled class="pt-btn pt-btn-outline"><i class="bi bi-download me-2"></i>Download</button>
         </div>
     </div>
 
     <!-- Loading State -->
-    <div id="loadingState" class="hidden text-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-gray-600">Generating report...</p>
+    <div id="loadingState" class="loading-spinner">
+        <div class="spinner-border text-warning mb-3" role="status" style="width:3rem;height:3rem;"></div>
+        <p>Generating report...</p>
     </div>
 
-    <!-- Recent Reports (Placeholder) -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mt-8">
-        <h2 class="text-lg font-semibold mb-4">Report History</h2>
-        <div class="text-center py-8 text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+    <!-- Report Preview -->
+    <div id="reportPreview" style="display:none;">
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3"><div class="summary-card highlight"><div class="label">Health Score</div><div class="value" id="healthScore">-</div></div></div>
+            <div class="col-md-3"><div class="summary-card"><div class="label">Grade</div><div class="value" id="grade" style="color: var(--pt-interactive-primary);">-</div></div></div>
+            <div class="col-md-3"><div class="summary-card"><div class="label">Departments</div><div class="value" id="deptCount" style="color: var(--pt-status-success);">-</div></div></div>
+            <div class="col-md-3"><div class="summary-card"><div class="label">Data Coverage</div><div class="value" id="coverage" style="color: var(--pt-interactive-accent);">-</div></div></div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="report-section">
+            <h3>Executive Summary</h3>
+            <p id="execSummary" style="white-space:pre-line;"></p>
+        </div>
+
+        <!-- Department Performance -->
+        <div class="report-section">
+            <h3>Department Performance</h3>
+            <div class="row g-3" id="deptGrid"></div>
+        </div>
+
+        <!-- Key Findings & Recommendations -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="report-section h-100">
+                    <h3>Key Findings</h3>
+                    <div id="keyFindings"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="report-section h-100">
+                    <h3>Strategic Recommendations</h3>
+                    <div id="recommendations"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Sections -->
+        <div id="reportSections"></div>
+
+        <!-- Risk Items -->
+        <div id="riskSection" class="report-section" style="display:none;">
+            <h3><i class="bi bi-exclamation-triangle me-2"></i>Risk Items</h3>
+            <div id="riskItems"></div>
+        </div>
+    </div>
+
+    <!-- Report History -->
+    <div class="report-section mt-4">
+        <h5 style="color: var(--pt-text-primary);">Report History</h5>
+        <div class="text-center" style="padding: 2rem; color: var(--pt-text-muted);">
+            <i class="bi bi-journal-text" style="font-size: 2rem; display: block; margin-bottom: 0.75rem;"></i>
             <p>Generated reports will appear here</p>
         </div>
     </div>
-</div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 let currentReport = null;
 
@@ -144,9 +143,8 @@ async function generateReport() {
     const organization = document.getElementById('organization').value;
     const outputFormat = document.getElementById('outputFormat').value;
 
-    // Show loading
-    document.getElementById('loadingState').classList.remove('hidden');
-    document.getElementById('reportPreview').classList.add('hidden');
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('reportPreview').style.display = 'none';
 
     try {
         const response = await fetch('/api/reports/generate', {
@@ -175,109 +173,80 @@ async function generateReport() {
         }
     } catch (error) {
         console.error('Error generating report:', error);
-        alert('Error generating report. Please try again.');
+        if (typeof PatriotToast !== 'undefined') PatriotToast.danger('Error generating report. Please try again.');
     } finally {
-        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('loadingState').style.display = 'none';
     }
 }
 
 function renderReport(report) {
-    document.getElementById('reportPreview').classList.remove('hidden');
+    document.getElementById('reportPreview').style.display = 'block';
     document.getElementById('downloadBtn').disabled = false;
 
-    // Summary cards
     document.getElementById('healthScore').textContent = report.overall_health_score.toFixed(0) + '/100';
     document.getElementById('grade').textContent = report.overall_grade;
     document.getElementById('deptCount').textContent = report.department_metrics.length;
     document.getElementById('coverage').textContent = report.confidence_level.toFixed(0) + '%';
-
-    // Executive summary
     document.getElementById('execSummary').textContent = report.executive_summary;
 
-    // Department grid
     const deptGrid = document.getElementById('deptGrid');
-    deptGrid.innerHTML = report.department_metrics.map(dept => `
-        <div class="border rounded-lg p-4">
-            <div class="flex justify-between items-start mb-2">
-                <h4 class="font-semibold">${dept.role_title}</h4>
-                <span class="px-2 py-1 rounded text-xs ${dept.trend === 'improving' ? 'bg-green-100 text-green-700' : dept.trend === 'declining' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}">${dept.trend}</span>
+    deptGrid.innerHTML = report.department_metrics.map(dept => {
+        const trendColor = dept.trend === 'improving' ? 'var(--pt-status-success)' : dept.trend === 'declining' ? 'var(--pt-status-danger)' : 'var(--pt-text-muted)';
+        return `<div class="col-md-4"><div class="dept-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h4>${dept.role_title}</h4>
+                <span class="pt-badge" style="color:${trendColor};">${dept.trend}</span>
             </div>
-            <div class="text-2xl font-bold text-blue-600 mb-1">${dept.health_score.toFixed(0)}/100</div>
-            <div class="text-sm text-gray-500">${dept.product_name}</div>
-            ${dept.highlights.length > 0 ? `<div class="mt-2 text-sm text-gray-600">${dept.highlights[0]}</div>` : ''}
-        </div>
-    `).join('');
+            <div class="score mb-1">${dept.health_score.toFixed(0)}/100</div>
+            <div style="font-size:var(--pt-text-sm);color:var(--pt-text-muted);">${dept.product_name}</div>
+            ${dept.highlights.length > 0 ? `<div style="margin-top:0.5rem;font-size:var(--pt-text-sm);color:var(--pt-text-secondary);">${dept.highlights[0]}</div>` : ''}
+        </div></div>`;
+    }).join('');
 
-    // Key findings
-    const findingsList = document.getElementById('keyFindings');
-    findingsList.innerHTML = report.key_findings.map(f => `
-        <li class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>${f}</span>
-        </li>
-    `).join('');
+    document.getElementById('keyFindings').innerHTML = report.key_findings.map(f =>
+        `<div class="finding-item"><i class="bi bi-check-circle"></i><span>${f}</span></div>`
+    ).join('');
 
-    // Recommendations
-    const recsList = document.getElementById('recommendations');
-    recsList.innerHTML = report.strategic_recommendations.map(r => `
-        <li class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-            <span>${r}</span>
-        </li>
-    `).join('');
+    document.getElementById('recommendations').innerHTML = report.strategic_recommendations.map(r =>
+        `<div class="finding-item"><i class="bi bi-lightning"></i><span>${r}</span></div>`
+    ).join('');
 
-    // Sections
-    const sectionsContainer = document.getElementById('reportSections');
-    sectionsContainer.innerHTML = report.sections.map(section => `
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 class="text-lg font-semibold mb-2">${section.title}</h3>
-            <p class="text-gray-700">${section.content}</p>
+    document.getElementById('reportSections').innerHTML = report.sections.map(section => `
+        <div class="report-section">
+            <h3>${section.title}</h3>
+            <p>${section.content}</p>
             ${Object.keys(section.metrics).length > 0 ? `
-                <div class="mt-3 flex flex-wrap gap-3">
-                    ${Object.entries(section.metrics).filter(([k, v]) => typeof v !== 'object').map(([k, v]) => `
-                        <div class="bg-gray-50 px-3 py-2 rounded-lg">
-                            <span class="text-gray-500 text-sm">${k}:</span>
-                            <span class="font-medium ml-1">${v}</span>
-                        </div>
-                    `).join('')}
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    ${Object.entries(section.metrics).filter(([k, v]) => typeof v !== 'object').map(([k, v]) =>
+                        `<span class="metric-tag"><strong>${k}:</strong> ${v}</span>`
+                    ).join('')}
                 </div>
             ` : ''}
         </div>
     `).join('');
 
-    // Risk items
     if (report.risk_items && report.risk_items.length > 0) {
-        document.getElementById('riskSection').classList.remove('hidden');
+        document.getElementById('riskSection').style.display = 'block';
         document.getElementById('riskItems').innerHTML = report.risk_items.map(risk => `
-            <div class="p-3 rounded-lg ${risk.severity === 'critical' ? 'bg-red-50 border border-red-200' : risk.severity === 'high' ? 'bg-orange-50 border border-orange-200' : 'bg-yellow-50 border border-yellow-200'}">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="font-medium">[${risk.category}]</span>
-                        <span class="ml-2">${risk.description}</span>
-                    </div>
-                    <span class="px-2 py-1 rounded text-xs ${risk.severity === 'critical' ? 'bg-red-600 text-white' : risk.severity === 'high' ? 'bg-orange-500 text-white' : 'bg-yellow-500 text-white'}">${risk.severity}</span>
+            <div class="risk-item ${risk.severity}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div><strong>[${risk.category}]</strong> ${risk.description}</div>
+                    <span class="pt-badge pt-badge-${risk.severity === 'critical' ? 'danger' : risk.severity === 'high' ? 'warning' : 'info'}">${risk.severity}</span>
                 </div>
-                <div class="text-sm text-gray-600 mt-1">Mitigation: ${risk.mitigation}</div>
+                <div style="font-size:var(--pt-text-sm);color:var(--pt-text-muted);margin-top:0.25rem;">Mitigation: ${risk.mitigation}</div>
             </div>
         `).join('');
     } else {
-        document.getElementById('riskSection').classList.add('hidden');
+        document.getElementById('riskSection').style.display = 'none';
     }
 }
 
 function downloadReport() {
     if (!currentReport) return;
-
     const format = document.getElementById('outputFormat').value;
-
     if (format === 'json') {
         downloadText(JSON.stringify(currentReport, null, 2), `${currentReport.report_type}_report.json`, 'application/json');
     } else {
-        // Re-generate in the selected format
         generateReport();
     }
 }

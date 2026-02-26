@@ -1,25 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Executive Intelligence - AI-Powered CEO{% endblock %}
+{% block page_title %}Executive Intelligence{% endblock %}
+{% block extra_css %}
+<style>
+    .hero-banner { background: var(--pt-gradient-subtle); border-radius: var(--pt-radius-xl); padding: 2.5rem; margin-bottom: 2rem; text-align: center; }
+    .hero-banner h1 { color: var(--pt-text-primary); }
+    .hero-banner p { color: var(--pt-text-secondary); }
+    .feature-card { background: var(--pt-bg-surface); border: 1px solid var(--pt-border-default); border-radius: var(--pt-radius-lg); padding: 1.5rem; text-align: center; transition: transform var(--pt-transition-normal), box-shadow var(--pt-transition-normal); height: 100%; text-decoration: none; display: block; }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--pt-shadow-lg); border-color: var(--pt-border-accent); }
+    .feature-card .icon-wrap { width: 56px; height: 56px; border-radius: var(--pt-radius-lg); background: var(--pt-gradient-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: var(--pt-interactive-accent); }
+    .feature-card h5 { color: var(--pt-text-primary); margin-bottom: 0.5rem; }
+    .feature-card p { color: var(--pt-text-muted); font-size: var(--pt-text-sm); margin: 0; }
+</style>
+{% endblock %}
 {% block content %}
-<div class="hero-section text-center">
-    <div class="container">
-        <h1 class="display-4 fw-bold mb-3"><i class="bi bi-award me-3"></i>Executive Intelligence</h1>
+    <div class="hero-banner">
+        <h1 class="display-5 fw-bold mb-3"><i class="bi bi-award me-3"></i>Executive Intelligence</h1>
         <p class="lead mb-4">Your AI-Powered Fractional CEO - Strategic Leadership for Growing Companies</p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a href="/executive-dashboard" class="btn btn-warning btn-lg"><i class="bi bi-diagram-3 me-2"></i>Cross-Product Dashboard</a>
-            <a href="/chat" class="btn btn-dark btn-lg"><i class="bi bi-chat-dots me-2"></i>Talk to AI CEO</a>
-            <a href="/dashboard" class="btn btn-outline-dark btn-lg"><i class="bi bi-speedometer2 me-2"></i>Organization Dashboard</a>
+            <a href="/executive-dashboard" class="pt-btn pt-btn-accent"><i class="bi bi-diagram-3 me-2"></i>Cross-Product Dashboard</a>
+            <a href="/chat" class="pt-btn pt-btn-primary"><i class="bi bi-chat-dots me-2"></i>Talk to AI CEO</a>
+            <a href="/dashboard" class="pt-btn pt-btn-outline"><i class="bi bi-speedometer2 me-2"></i>Organization Dashboard</a>
         </div>
     </div>
-</div>
-<div class="container">
-    <div class="row mb-5">
-        <div class="col-12 text-center mb-4">
-            <h2 class="text-white">Executive Leadership for SMBs</h2>
-            <p style="color:#b0b8c4;">Strategic vision and cross-functional coordination without the full-time executive cost</p>
+
+    <div class="row mb-4">
+        <div class="col-12 text-center mb-3">
+            <h4 style="color: var(--pt-text-primary);">Executive Leadership for SMBs</h4>
+            <p style="color: var(--pt-text-secondary);">Strategic vision and cross-functional coordination without the full-time executive cost</p>
         </div>
     </div>
-    <div class="row g-4 mb-5">
+    <div class="row g-4 mb-4">
         {% for icon, title, desc, url in [
             ('bi-heart-pulse', 'Business Health', 'Comprehensive health scoring across financial, operational, customer, and people dimensions', '/business-health'),
             ('bi-compass', 'Strategic Planning', 'OKR framework, goal tracking, and strategic alignment across the organization', '/strategic-planning'),
@@ -29,27 +40,23 @@
             ('bi-shield-exclamation', 'Enterprise Risk', 'Comprehensive risk visibility across strategic, operational, and market dimensions', '/enterprise-risk')
         ] %}
         <div class="col-md-4">
-            <a href="{{ url }}" class="text-decoration-none">
-                <div class="card h-100" style="transition: transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 8px 25px rgba(255,215,0,0.2)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mx-auto"><i class="bi {{ icon }} text-dark"></i></div>
-                        <h5>{{ title }}</h5>
-                        <p class="text-muted">{{ desc }}</p>
-                    </div>
-                </div>
+            <a href="{{ url }}" class="feature-card">
+                <div class="icon-wrap"><i class="bi {{ icon }}"></i></div>
+                <h5>{{ title }}</h5>
+                <p>{{ desc }}</p>
             </a>
         </div>
         {% endfor %}
     </div>
-    <div class="row mb-5">
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>AI CEO Consultant</h5></div>
+                <div class="card-header"><h5 class="mb-0" style="color: var(--pt-text-primary);"><i class="bi bi-chat-dots me-2"></i>AI CEO Consultant</h5></div>
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <p class="mb-2" style="color:#e6edf3;">Get executive-level strategic guidance powered by Claude AI:</p>
-                            <ul style="color:#c9d1d9;">
+                            <p class="mb-2" style="color: var(--pt-text-primary);">Get executive-level strategic guidance powered by Claude AI:</p>
+                            <ul style="color: var(--pt-text-secondary);">
                                 <li>Business health assessment and diagnostics</li>
                                 <li>Strategic planning and goal setting</li>
                                 <li>Board meeting preparation</li>
@@ -58,7 +65,7 @@
                             </ul>
                         </div>
                         <div class="col-md-4 text-center">
-                            <a href="/chat" class="btn btn-primary btn-lg"><i class="bi bi-chat-dots me-2"></i>Start Conversation</a>
+                            <a href="/chat" class="pt-btn pt-btn-primary pt-btn-lg"><i class="bi bi-chat-dots me-2"></i>Start Conversation</a>
                         </div>
                     </div>
                 </div>
@@ -67,17 +74,16 @@
     </div>
     <div class="row">
         <div class="col-12 text-center">
-            <h4 class="mb-4">The Complete Fractional C-Suite</h4>
+            <h5 class="mb-3" style="color: var(--pt-text-primary);">The Complete Fractional C-Suite</h5>
             <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <span class="badge bg-secondary p-2">CFO - Cash Flow Intelligence</span>
-                <span class="badge bg-secondary p-2">CTO - App Rationalization Pro</span>
-                <span class="badge bg-secondary p-2">COO - Operations Intelligence</span>
-                <span class="badge bg-secondary p-2">CHRO - Talent Intelligence</span>
-                <span class="badge bg-secondary p-2">CMO - Marketing Intelligence</span>
-                <span class="badge bg-secondary p-2">CISO - Security Intelligence</span>
-                <span class="badge bg-warning text-dark p-2">CEO - Executive Intelligence</span>
+                <span class="pt-badge pt-badge-default">CFO - Cash Flow Intelligence</span>
+                <span class="pt-badge pt-badge-default">CTO - App Rationalization Pro</span>
+                <span class="pt-badge pt-badge-default">COO - Operations Intelligence</span>
+                <span class="pt-badge pt-badge-default">CHRO - Talent Intelligence</span>
+                <span class="pt-badge pt-badge-default">CMO - Marketing Intelligence</span>
+                <span class="pt-badge pt-badge-default">CISO - Security Intelligence</span>
+                <span class="pt-badge pt-badge-warning">CEO - Executive Intelligence</span>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
